@@ -651,10 +651,21 @@ body {
     height: 100vh;
     background: rgba(0, 0, 0, 0.45);
     backdrop-filter: blur(12px) saturate(180%);
-    display: flex;
+    display: none;
+    /* Controlled by JS */
     justify-content: center;
     align-items: center;
     z-index: 10000;
+}
+
+#todo-list-overlay:not([style*="display: none"]) {
+    pointer-events: auto;
+}
+
+#todo-list-overlay[style*="display: none"] {
+    pointer-events: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
 }
 
 #todo-modal {
@@ -838,4 +849,217 @@ body {
 
 #add-todo-btn:active {
     transform: translateY(0);
+}
+
+/* Boss Control Panel */
+#boss-panel-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(15px);
+    display: none;
+    /* Controlled by JS */
+    justify-content: center;
+    align-items: center;
+    z-index: 10001;
+}
+
+#boss-panel-overlay:not([style*="display: none"]) {
+    pointer-events: auto;
+}
+
+#boss-panel-overlay[style*="display: none"] {
+    pointer-events: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+#boss-modal {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(40px);
+    border: 1px solid rgba(255, 183, 77, 0.3);
+    /* Gold tint for Boss */
+    border-radius: 24px;
+    width: 450px;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 10px 40px rgba(0, 212, 255, 0.2);
+    animation: modalSlideUp 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+#boss-header {
+    padding: 30px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(to right, rgba(255, 255, 255, 0.05), transparent);
+}
+
+#boss-title {
+    margin: 0;
+    font-size: 1.6rem;
+    color: #ffb74d;
+    /* Golden accent */
+    font-weight: 800;
+}
+
+#close-boss-btn {
+    background: none;
+    border: none;
+    color: #888;
+    font-size: 2rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+#close-boss-btn:hover {
+    color: #ff5555;
+}
+
+#boss-panel-content {
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.boss-description {
+    color: #ccc;
+    font-size: 1rem;
+    line-height: 1.6;
+    margin: 0;
+}
+
+#boss-input-area {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+#boss-task-input {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 183, 77, 0.2);
+    border-radius: 12px;
+    padding: 15px;
+    color: white;
+    font-size: 1.1rem;
+    outline: none;
+}
+
+#boss-task-input:focus {
+    border-color: #ffb74d;
+}
+
+#assign-boss-task-btn {
+    background: linear-gradient(135deg, #ffb74d 0%, #f57c00 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 15px;
+    font-weight: 800;
+    cursor: pointer;
+    font-size: 1rem;
+    box-shadow: 0 4px 15px rgba(245, 124, 0, 0.3);
+    transition: all 0.3s;
+}
+
+#assign-boss-task-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(245, 124, 0, 0.5);
+}
+
+.boss-subtitle {
+    margin: 20px 0 10px;
+    font-size: 1.1rem;
+    color: #ffb74d;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+#boss-desk-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.desk-box {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 15px;
+    text-align: center;
+    font-weight: 700;
+    color: #888;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 0.9rem;
+}
+
+.desk-box:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+    color: #fff;
+}
+
+.desk-box.active {
+    background: rgba(74, 144, 226, 0.2);
+    border-color: #4a90e2;
+    color: #4a90e2;
+    box-shadow: 0 0 15px rgba(74, 144, 226, 0.3);
+}
+
+#boss-desk-detail {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    padding: 20px;
+    min-height: 150px;
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+#detail-title {
+    margin: 0 0 12px;
+    font-size: 1rem;
+    color: #fff;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 8px;
+}
+
+.boss-read-only-todo {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.boss-read-only-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    color: #ccc;
+    font-size: 0.95rem;
+}
+
+.boss-read-only-item.done {
+    text-decoration: line-through;
+    opacity: 0.5;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #4a90e2;
+    flex-shrink: 0;
+}
+
+.status-dot.done {
+    background: #4ade80;
 }

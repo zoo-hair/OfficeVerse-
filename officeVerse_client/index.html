@@ -142,6 +142,41 @@
         </div>
     </div>
 
+    <!-- Boss Control Panel -->
+    <div id="boss-panel-overlay" style="display: none;">
+        <div id="boss-modal">
+            <div id="boss-header">
+                <h2 id="boss-title">Boss Control Panel 💼</h2>
+                <button id="close-boss-btn">&times;</button>
+            </div>
+            <div id="boss-panel-content">
+                <p class="boss-description">Assign a priority task to all employees. This task will appear on every desk
+                    and cannot be removed.</p>
+                <div id="boss-input-area">
+                    <input type="text" id="boss-task-input" placeholder="Enter universal command..." maxlength="60">
+                    <button id="assign-boss-task-btn">Assign Task 📢</button>
+                </div>
+
+                <h3 class="boss-subtitle">Performance Monitor</h3>
+                <div id="boss-desk-grid">
+                    <div class="desk-box" data-desk="d1">D1</div>
+                    <div class="desk-box" data-desk="d2">D2</div>
+                    <div class="desk-box" data-desk="d3">D3</div>
+                    <div class="desk-box" data-desk="d4">D4</div>
+                    <div class="desk-box" data-desk="d5">D5</div>
+                    <div class="desk-box" data-desk="d6">D6</div>
+                </div>
+
+                <div id="boss-desk-detail">
+                    <h4 id="detail-title">Select a desk to view tasks</h4>
+                    <ul id="boss-detail-list" class="boss-read-only-todo">
+                        <!-- Populated via JS -->
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="game-container"></div>
 </body>
 

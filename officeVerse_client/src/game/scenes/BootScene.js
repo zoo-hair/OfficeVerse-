@@ -140,6 +140,7 @@ export default class BootScene extends Phaser.Scene {
                     id: playerId,
                     skin: selectedSkin,
                     character: activeChar,
+                    role: selectedRole, // New: track player role
                     roomId: room.id,
                     roomName: room.name,
                     roomCode: room.joinCode

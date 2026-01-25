@@ -241,6 +241,14 @@ export function initChat(playerId, playerName, roomId, roomDisplayCode) {
             // GLOBAL:SenderID:Msg
             const sender = parts[1];
             const msg = parts[2];
+
+            // Boss Task Logic
+            if (msg.startsWith('BOSS_TASK:')) {
+                const taskText = msg.substring(10);
+                if (window.handleBossTaskReceived) window.handleBossTaskReceived(taskText);
+                return; // Don't show in chat history
+            }
+
             const senderName = playerNamesMap[sender] || sender;
             const type = (sender == playerId) ? 'sent' : 'received';
             const name = (sender == playerId) ? 'You' : senderName;

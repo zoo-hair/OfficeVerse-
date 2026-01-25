@@ -41,8 +41,10 @@ export default class OfficeScene extends Phaser.Scene {
         this.roomId = data?.roomId;
         this.roomName = data?.roomName;
         this.roomCode = data?.roomCode;
+        this.playerRole = data?.role || 'employee'; // 'boss' or 'employee'
 
         console.log('--- OfficeScene Initialization ---');
+        console.log('Role:', this.playerRole);
         console.log('Room ID:', this.roomId);
         console.log('Room Code:', this.roomCode);
         console.log('Player ID:', this.myPlayerId);
@@ -154,6 +156,7 @@ export default class OfficeScene extends Phaser.Scene {
         this.fKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
 
         this.setupTodoListeners();
+        this.setupBossListeners();
     }
 
     createAnimations() {
@@ -356,6 +359,9 @@ export default class OfficeScene extends Phaser.Scene {
         else if (n === 'coffee') t = '[F] Grab Coffee';
         else if (n === 'zenRoom') t = '[F] Meditate';
         else if (n === 'executive') t = '[F] Executive Suite';
+        else if (n === 'bossRoom') {
+            t = (this.playerRole === 'boss') ? '[F] Boss Control Panel' : 'Boss Only Area';
+        }
         else if (n.match(/^d[1-6]$/)) t = '[F] Open To-Do List';
         this.zonePrompt.setText(t).setVisible(true);
     }
@@ -371,6 +377,13 @@ export default class OfficeScene extends Phaser.Scene {
             case 'exit': if (confirm('Leave office?')) window.location.reload(); break;
             case 'coffee': this.grabCoffee(); break;
             case 'zenRoom': this.toggleZenMode(); break;
+            case 'bossRoom':
+                if (this.playerRole === 'boss') {
+                    this.openBossPanel();
+                } else {
+                    this.showPopup('Access Denied: Only the Boss can enter! 🚫');
+                }
+                break;
             case 'executive': this.showPopup('Welcome, Executive. 💼'); break;
             default:
                 if (this.currentZone.match(/^d[1-6]$/)) {
@@ -462,7 +475,7 @@ export default class OfficeScene extends Phaser.Scene {
             li.innerHTML = `
                 <input type="checkbox" ${task.completed ? 'checked' : ''}>
                 <span>${task.text}</span>
-                <button class="delete-task-btn">&times;</button>
+                <button class="delete-task-btn" ${task.immutable ? 'style="display:none"' : ''}>&times;</button>
             `;
 
             li.querySelector('input').onclick = () => {
@@ -470,12 +483,130 @@ export default class OfficeScene extends Phaser.Scene {
                 this.renderTodos();
             };
 
-            li.querySelector('.delete-task-btn').onclick = () => {
-                this.todoManager.deleteTask(this.activeDesk, task.id);
-                this.renderTodos();
-            };
+            if (!task.immutable) {
+                const deleteBtn = li.querySelector('.delete-task-btn');
+                if (deleteBtn) {
+                    deleteBtn.onclick = () => {
+                        this.todoManager.deleteTask(this.activeDesk, task.id);
+                        this.renderTodos();
+                    };
+                }
+            }
 
             list.appendChild(li);
+        });
+    }
+
+    /* ---------------- BOSS CONTROL PANEL ---------------- */
+    setupBossListeners() {
+        const closeBtn = document.getElementById('close-boss-btn');
+        if (closeBtn) closeBtn.onclick = () => this.closeBossPanel();
+
+        const assignBtn = document.getElementById('assign-boss-task-btn');
+        if (assignBtn) assignBtn.onclick = () => this.assignBossTask();
+
+        const input = document.getElementById('boss-task-input');
+        if (input) input.onkeydown = (e) => {
+            if (e.key === 'Enter') this.assignBossTask();
+        };
+
+        // Desk Selection Grid Logic
+        const deskBoxes = document.querySelectorAll('.desk-box');
+        deskBoxes.forEach(box => {
+            box.onclick = () => {
+                deskBoxes.forEach(b => b.classList.remove('active'));
+                box.classList.add('active');
+                this.renderDeskDetail(box.dataset.desk);
+            };
+        });
+
+        window.handleBossTaskReceived = (text) => {
+            if (this.todoManager) {
+                this.todoManager.assignGlobalTask(text);
+                this.showPopup(`THE BOSS HAS ASSIGNED A NEW TASK! 💡`);
+                this.updateDeskNotifications();
+                if (this.activeDesk) this.renderTodos();
+            }
+        };
+    }
+
+    openBossPanel() {
+        const overlay = document.getElementById('boss-panel-overlay');
+        if (overlay) {
+            overlay.style.display = 'flex';
+            // Clear detail and reset grid
+            const list = document.getElementById('boss-detail-list');
+            if (list) list.innerHTML = '';
+            const title = document.getElementById('detail-title');
+            if (title) title.textContent = 'Select a desk to view tasks';
+            document.querySelectorAll('.desk-box').forEach(b => b.classList.remove('active'));
+        }
+    }
+
+    renderDeskDetail(deskId) {
+        const list = document.getElementById('boss-detail-list');
+        const title = document.getElementById('detail-title');
+        if (!list || !title) return;
+
+        title.textContent = `Tasks for Desk ${deskId.toUpperCase()}`;
+        list.innerHTML = '';
+
+        const tasks = this.todoManager.getTasks(deskId);
+        if (tasks.length === 0) {
+            list.innerHTML = '<li style="color:#666; font-style:italic">No active tasks found</li>';
+            return;
+        }
+
+        tasks.forEach(t => {
+            const li = document.createElement('li');
+            li.className = `boss-read-only-item ${t.completed ? 'done' : ''}`;
+            li.innerHTML = `
+                <span class="status-dot ${t.completed ? 'done' : ''}"></span>
+                ${t.text}
+            `;
+            list.appendChild(li);
+        });
+    }
+
+    closeBossPanel() {
+        const overlay = document.getElementById('boss-panel-overlay');
+        if (overlay) overlay.style.display = 'none';
+
+        const input = document.getElementById('boss-task-input');
+        if (input) input.value = '';
+    }
+
+    assignBossTask() {
+        if (this.playerRole !== 'boss') return;
+        const input = document.getElementById('boss-task-input');
+        if (!input) return;
+        const text = input.value.trim();
+        if (text) {
+            this.todoManager.assignGlobalTask(text);
+            if (window.sendGlobalMessage) window.sendGlobalMessage(`BOSS_TASK:${text}`);
+            this.showPopup('Global Task Assigned to all Desks! 📢');
+            this.closeBossPanel();
+            this.updateDeskNotifications();
+        }
+    }
+
+    updateDeskNotifications() {
+        if (this.deskNotifications) this.deskNotifications.forEach(n => n.destroy());
+        this.deskNotifications = [];
+
+        const desks = [
+            { id: 'd1', x: 460, y: 100 }, { id: 'd2', x: 580, y: 100 }, { id: 'd3', x: 720, y: 95 },
+            { id: 'd4', x: 460, y: 190 }, { id: 'd5', x: 590, y: 195 }, { id: 'd6', x: 715, y: 190 }
+        ];
+
+        desks.forEach(d => {
+            const hasBossTask = this.todoManager.getTasks(d.id).some(t => t.immutable && !t.completed);
+            if (hasBossTask) {
+                const bulb = this.add.text(d.x, d.y - 30, '💡', { fontSize: '24px' }).setOrigin(0.5);
+                bulb.setDepth(2000);
+                this.tweens.add({ targets: bulb, y: bulb.y - 5, duration: 1000, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+                this.deskNotifications.push(bulb);
+            }
         });
     }
 }
