@@ -1,0 +1,150 @@
+/* Executive Panel (Sapphire Glass Pop-up) */
+#executive-panel-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    /* Dim background */
+    backdrop-filter: blur(12px);
+    display: none;
+    /* Controlled by JS */
+    justify-content: center;
+    align-items: center;
+    z-index: 10001;
+}
+
+#executive-panel-overlay:not([style*="display: none"]) {
+    pointer-events: auto;
+}
+
+#executive-panel-overlay[style*="display: none"] {
+    pointer-events: none;
+    backdrop-filter: none;
+}
+
+#executive-modal {
+    background: rgba(13, 71, 161, 0.15);
+    /* Deep sapphire glass */
+    backdrop-filter: blur(40px);
+    -webkit-backdrop-filter: blur(40px);
+    border: 1px solid rgba(100, 210, 255, 0.3);
+    border-radius: 24px;
+    width: 400px;
+    padding: 0;
+    /* Header-Content separation */
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 15px 50px rgba(0, 50, 150, 0.4);
+    animation: modalSlideUp 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+    overflow: hidden;
+}
+
+#executive-header {
+    padding: 25px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(to right, rgba(0, 145, 234, 0.1), transparent);
+}
+
+#executive-title {
+    margin: 0;
+    font-size: 1.6rem;
+    color: #4fc3f7;
+    font-weight: 800;
+}
+
+#close-executive-btn {
+    background: none;
+    border: none;
+    color: #888;
+    font-size: 2rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+#close-executive-btn:hover {
+    color: #ff5555;
+}
+
+#executive-panel-content {
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    text-align: center;
+}
+
+.executive-description {
+    color: #b0bec5;
+    font-size: 1rem;
+    line-height: 1.6;
+    margin: 0;
+}
+
+#trigger-bonus-btn {
+    background: linear-gradient(135deg, #00b0ff 0%, #0091ea 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 20px;
+    font-weight: 800;
+    cursor: pointer;
+    font-size: 1.1rem;
+    box-shadow: 0 6px 20px rgba(0, 145, 234, 0.4);
+    transition: all 0.3s;
+}
+
+#trigger-bonus-btn:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 30px rgba(0, 145, 234, 0.6);
+    filter: brightness(1.1);
+}
+
+#trigger-bonus-btn:active {
+    transform: translateY(-1px);
+}
+
+/* Bonus Rain Visuals */
+.bonus-money {
+    position: fixed;
+    top: -50px;
+    font-size: 2.5rem;
+    user-select: none;
+    pointer-events: none;
+    z-index: 99999;
+    animation: moneyFall 3s linear forwards;
+}
+
+@keyframes moneyFall {
+    0% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateY(110vh) rotate(360deg);
+        opacity: 0;
+    }
+}
+
+.gold-tint {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(255, 215, 0, 0.1);
+    box-shadow: inset 0 0 100px rgba(255, 215, 0, 0.2);
+    pointer-events: none;
+    z-index: 99998;
+    opacity: 0;
+    transition: opacity 1s;
+}
+
+.gold-tint.active {
+    opacity: 1;
+}

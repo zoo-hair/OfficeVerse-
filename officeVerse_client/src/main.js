@@ -15,15 +15,20 @@ import UIScene from './game/scenes/UIScene.js';
 
 const config = {
     type: Phaser.AUTO,
-    width: 900, //640
-    height: 600, //480
+    parent: 'game-container',
+    scale: {
+        mode: Phaser.Scale.RESIZE,
+        autoCenter: Phaser.Scale.CENTER_BOTH,
+        width: '100%',
+        height: '100%'
+    },
     physics: {
         default: 'arcade',
         arcade: {
             debug: false
         }
     },
-    scene: [BootScene, OfficeScene, UIScene]  // [OfficeScene]
+    scene: [BootScene, OfficeScene, UIScene]
 };
 
 const game = new Phaser.Game(config);
