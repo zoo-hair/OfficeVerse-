@@ -321,7 +321,7 @@ export default class OfficeScene extends Phaser.Scene {
 
     handleZoneEnter(z) {
         if (this.currentZone !== z.name) {
-            console.log('Entering zone:', z.name);
+            console.log(`[DEBUG] Entering zone: ${z.name}`);
             this.currentZone = z.name;
             this.showZonePrompt(z.name);
         }
@@ -330,8 +330,7 @@ export default class OfficeScene extends Phaser.Scene {
     updateZoneInteraction() {
         let oz = null;
         if (this.zones) {
-            const children = this.zones.getChildren();
-            children.forEach(z => {
+            this.zones.getChildren().forEach(z => {
                 if (this.physics.overlap(this.player, z)) {
                     oz = z;
                 }
@@ -339,9 +338,11 @@ export default class OfficeScene extends Phaser.Scene {
         }
 
         if (oz) {
-            if (this.currentZone !== oz.name) this.handleZoneEnter(oz);
+            if (this.currentZone !== oz.name) {
+                this.handleZoneEnter(oz);
+            }
         } else if (this.currentZone) {
-            console.log('Exiting zone:', this.currentZone);
+            console.log(`[DEBUG] Exiting zone: ${this.currentZone}`);
             this.hideZonePrompt();
             if (this.activeDesk) this.closeTodo();
         }

@@ -21,7 +21,9 @@ export default class ZoneManager {
 
       this.scene.physics.add.existing(zone, true);
       zone.name = obj.name;
-      zone.setVisible(false); // Make physics zones invisible
+      zone.setVisible(true); // Debug visibility
+      zone.setFillStyle(0x0000ff, 0.4); // Semi-transparent blue
+      console.log(`[ZONE_DEBUG] created: ${zone.name} at (${zone.x}, ${zone.y})`);
       this.zones.add(zone);
     });
 
