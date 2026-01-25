@@ -3,6 +3,7 @@ import { connectMovement, sendMovement } from '../../network/movementSocket.js';
 import { initChat } from '../../network/ChatModule.js';
 import ZoneManager from '../map/ZoneManager.js';
 import MiniMap from '../ui/MiniMap.js';
+import TodoManager from '../ui/TodoManager.js';
 
 export default class OfficeScene extends Phaser.Scene {
     constructor() {
@@ -23,19 +24,13 @@ export default class OfficeScene extends Phaser.Scene {
 
         // Character configurations
         this.characterConfigs = {
-            owlet: {
-                walk: 'Owlet_Monster_Walk',
-                idle: 'Owlet_Monster_Idle'
-            },
-            dude: {
-                walk: 'Dude_Monster_Walk',
-                idle: 'Dude_Monster_Idle'
-            },
-            pink: {
-                walk: 'Pink_Monster_Walk',
-                idle: 'Pink_Monster_Idle'
-            }
+            owlet: { walk: 'Owlet_Monster_Walk', idle: 'Owlet_Monster_Idle' },
+            dude: { walk: 'Dude_Monster_Walk', idle: 'Dude_Monster_Idle' },
+            pink: { walk: 'Pink_Monster_Walk', idle: 'Pink_Monster_Idle' }
         };
+
+        this.todoManager = new TodoManager();
+        this.activeDesk = null;
     }
 
     init(data) {
@@ -60,7 +55,6 @@ export default class OfficeScene extends Phaser.Scene {
         this.load.image('office_tileset', 'assets/tilesets/office_tileset.png');
         this.load.image('office_tileset2', 'assets/tilesets/office_tileset2.png');
 
-        // Sprite sheets
         ['Owlet', 'Dude', 'Pink'].forEach(char => {
             this.load.spritesheet(`${char}_Monster_Walk`, `assets/sprites/${char}_Monster_Walk_6.png`, { frameWidth: 32, frameHeight: 32 });
             this.load.spritesheet(`${char}_Monster_Idle`, `assets/sprites/${char}_Monster_Idle_4.png`, { frameWidth: 32, frameHeight: 32 });
@@ -147,9 +141,8 @@ export default class OfficeScene extends Phaser.Scene {
 
         /* ---------------- MINIMAP ---------------- */
         const minimapSize = 150;
-        const padding = 20;
-        const camX = this.scale.width - minimapSize - padding;
-        const camY = this.scale.height - minimapSize - padding;
+        const camX = this.scale.width - minimapSize - 20;
+        const camY = this.scale.height - minimapSize - 20;
 
         this.miniMap = new MiniMap(this, map, camX, camY, minimapSize);
         this.miniMap.follow(this.player);
@@ -159,6 +152,8 @@ export default class OfficeScene extends Phaser.Scene {
         this.cursors = this.input.keyboard.createCursorKeys();
         this.eKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
         this.fKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
+
+        this.setupTodoListeners();
     }
 
     createAnimations() {
@@ -246,40 +241,33 @@ export default class OfficeScene extends Phaser.Scene {
         const barH = 4;
         this.barGraphics.clear();
 
-        // Energy (Neon Yellow)
-        this.barGraphics.lineStyle(3, 0xffff00, 0.3); // Glow
+        // Energy (Glow Yellow)
+        this.barGraphics.lineStyle(3, 0xffff00, 0.3);
         this.barGraphics.strokeRect(x, y, width, barH);
-        this.barGraphics.lineStyle(1, 0xffffff, 0.6); // Border
+        this.barGraphics.lineStyle(1, 0xffffff, 0.6);
         this.barGraphics.strokeRect(x, y, width, barH);
-        this.barGraphics.fillStyle(0xffff00, 0.9); // Fill
+        this.barGraphics.fillStyle(0xffff00, 0.9);
         this.barGraphics.fillRect(x, y, width * (this.energy / 100), barH);
         this.energyIcon.setPosition(x - 12, y + 2);
 
-        // Stress (Neon Red)
-        this.barGraphics.lineStyle(3, 0xff0000, 0.3); // Glow
+        // Stress (Glow Red)
+        this.barGraphics.lineStyle(3, 0xff0000, 0.3);
         this.barGraphics.strokeRect(x, y + 8, width, barH);
-        this.barGraphics.lineStyle(1, 0xffffff, 0.6); // Border
+        this.barGraphics.lineStyle(1, 0xffffff, 0.6);
         this.barGraphics.strokeRect(x, y + 8, width, barH);
-        this.barGraphics.fillStyle(0xff0000, 0.9); // Fill
+        this.barGraphics.fillStyle(0xff0000, 0.9);
         this.barGraphics.fillRect(x, y + 8, width * (this.stress / 100), barH);
         this.stressIcon.setPosition(x - 12, y + 10);
     }
 
     handleNetwork(data) {
         try {
-            if (data.startsWith('PlayerLeft:')) {
-                this.handlePlayerLeft(Number(data.split(':')[1]));
-                return;
-            }
+            if (data.startsWith('PlayerLeft:')) { this.handlePlayerLeft(Number(data.split(':')[1])); return; }
             const parts = data.split(':');
             if (parts[0] !== 'Broadcast') return;
 
             let idx = 1;
-            if (parts.length >= 10) {
-                if (this.roomId && parts[1] != this.roomId) return;
-                idx = 2;
-            }
-
+            if (parts.length >= 10) { if (this.roomId && parts[1] != this.roomId) return; idx = 2; }
             const id = Number(parts[idx]);
             if (isNaN(id) || id === this.myPlayerId) return;
 
@@ -311,12 +299,7 @@ export default class OfficeScene extends Phaser.Scene {
 
     handlePlayerLeft(id) {
         const p = this.otherPlayers[id];
-        if (p) {
-            if (p.tween) p.tween.stop();
-            p.sprite.destroy();
-            p.label.destroy();
-            delete this.otherPlayers[id];
-        }
+        if (p) { if (p.tween) p.tween.stop(); p.sprite.destroy(); p.label.destroy(); delete this.otherPlayers[id]; }
     }
 
     updateProximityInteraction() {
@@ -336,13 +319,32 @@ export default class OfficeScene extends Phaser.Scene {
 
     hideInteractionPrompt() { if (this.interactionPrompt) this.interactionPrompt.setVisible(false); }
 
-    handleZoneEnter(z) { if (this.currentZone !== z.name) { this.currentZone = z.name; this.showZonePrompt(z.name); } }
+    handleZoneEnter(z) {
+        if (this.currentZone !== z.name) {
+            console.log('Entering zone:', z.name);
+            this.currentZone = z.name;
+            this.showZonePrompt(z.name);
+        }
+    }
 
     updateZoneInteraction() {
         let oz = null;
-        if (this.zones) this.zones.getChildren().forEach(z => { if (this.physics.overlap(this.player, z)) oz = z; });
-        if (oz) { if (this.currentZone !== oz.name) this.handleZoneEnter(oz); }
-        else if (this.currentZone) this.hideZonePrompt();
+        if (this.zones) {
+            const children = this.zones.getChildren();
+            children.forEach(z => {
+                if (this.physics.overlap(this.player, z)) {
+                    oz = z;
+                }
+            });
+        }
+
+        if (oz) {
+            if (this.currentZone !== oz.name) this.handleZoneEnter(oz);
+        } else if (this.currentZone) {
+            console.log('Exiting zone:', this.currentZone);
+            this.hideZonePrompt();
+            if (this.activeDesk) this.closeTodo();
+        }
     }
 
     showZonePrompt(n) {
@@ -354,6 +356,8 @@ export default class OfficeScene extends Phaser.Scene {
         else if (n === 'exit') t = '[F] Exit Office';
         else if (n === 'coffee') t = '[F] Grab Coffee';
         else if (n === 'zenRoom') t = '[F] Meditate';
+        else if (n === 'executive') t = '[F] Executive Suite';
+        else if (n.match(/^d[1-6]$/)) t = '[F] Open To-Do List';
         this.zonePrompt.setText(t).setVisible(true);
     }
 
@@ -363,11 +367,116 @@ export default class OfficeScene extends Phaser.Scene {
         if (!this.currentZone) return;
         switch (this.currentZone) {
             case 'meetingRoom': window.open('https://meet.google.com/new', '_blank'); break;
-            case 'genAI': alert('AI Assistant coming soon!'); break;
-            case 'gaming': alert('Gaming coming soon!'); break;
+            case 'genAI': this.showPopup('AI Assistant coming soon! 🤖'); break;
+            case 'gaming': this.showPopup('Gaming coming soon! 🎮'); break;
             case 'exit': if (confirm('Leave office?')) window.location.reload(); break;
-            case 'coffee': this.energy = 100; alert('☕ Energy restored!'); break;
-            case 'zenRoom': this.stress = 0; this.player.setTint(0x88ccff); alert('🧘 Stress reset!'); this.time.delayedCall(2000, () => this.player.setTint(this.myPlayerSkin)); break;
+            case 'coffee': this.grabCoffee(); break;
+            case 'zenRoom': this.toggleZenMode(); break;
+            case 'executive': this.showPopup('Welcome, Executive. 💼'); break;
+            default:
+                if (this.currentZone.match(/^d[1-6]$/)) {
+                    this.openTodo(this.currentZone);
+                } else {
+                    this.showPopup(`Interacted with ${this.currentZone}`);
+                }
+                break;
         }
+    }
+
+    grabCoffee() {
+        this.energy = 100;
+        this.showPopup('Coffee finished ☕');
+    }
+
+    toggleZenMode() {
+        this.stress = 0;
+        this.player.setTint(0x88ccff);
+        this.showPopup('Zen achieved 🧘');
+        this.time.delayedCall(2000, () => this.player.setTint(this.myPlayerSkin));
+    }
+
+    showPopup(message) {
+        if (this.activePopup) this.activePopup.destroy();
+        const container = this.add.container(this.cameras.main.centerX, this.cameras.main.centerY).setScrollFactor(0).setDepth(11000);
+        const bg = this.add.rectangle(0, 0, 300, 80, 0xffffff, 1).setStrokeStyle(4, 0x000000);
+        const text = this.add.text(0, 0, message, { fontSize: '20px', color: '#000000', fontFamily: 'Arial' }).setOrigin(0.5);
+        container.add([bg, text]);
+        this.activePopup = container;
+        this.tweens.add({ targets: container, alpha: { from: 1, to: 0 }, delay: 2500, duration: 500, onComplete: () => { container.destroy(); if (this.activePopup === container) this.activePopup = null; } });
+    }
+
+    /* ---------------- TO-DO LIST ---------------- */
+    setupTodoListeners() {
+        const closeBtn = document.getElementById('close-todo-btn');
+        if (closeBtn) closeBtn.onclick = () => this.closeTodo();
+
+        const addBtn = document.getElementById('add-todo-btn');
+        if (addBtn) addBtn.onclick = () => this.addTodo();
+
+        const input = document.getElementById('todo-input');
+        if (input) input.onkeydown = (e) => {
+            if (e.key === 'Enter') this.addTodo();
+        };
+    }
+
+    openTodo(deskId) {
+        this.activeDesk = deskId;
+        const title = document.getElementById('todo-title');
+        if (title) title.textContent = `Desk ${deskId.toUpperCase()} - To-Do List`;
+
+        const overlay = document.getElementById('todo-list-overlay');
+        if (overlay) overlay.style.display = 'flex';
+
+        this.renderTodos();
+    }
+
+    closeTodo() {
+        this.activeDesk = null;
+        const overlay = document.getElementById('todo-list-overlay');
+        if (overlay) overlay.style.display = 'none';
+
+        const input = document.getElementById('todo-input');
+        if (input) input.value = '';
+    }
+
+    addTodo() {
+        const input = document.getElementById('todo-input');
+        if (!input) return;
+        const text = input.value.trim();
+        if (text && this.activeDesk) {
+            this.todoManager.addTask(this.activeDesk, text);
+            input.value = '';
+            this.renderTodos();
+        }
+    }
+
+    renderTodos() {
+        if (!this.activeDesk) return;
+        const list = document.getElementById('todo-items');
+        if (!list) return;
+        list.innerHTML = '';
+        const tasks = this.todoManager.getTasks(this.activeDesk);
+
+        tasks.forEach(task => {
+            const li = document.createElement('li');
+            li.className = `todo-item ${task.completed ? 'completed' : ''}`;
+            li.innerHTML = `
+                <input type="checkbox" ${task.completed ? 'checked' : ''}>
+                <span>${task.text}</span>
+                <button class="delete-task-btn">&times;</button>
+            `;
+
+            li.querySelector('input').onclick = () => {
+                this.todoManager.toggleTask(this.activeDesk, task.id);
+                this.renderTodos();
+            };
+
+            li.querySelector('.delete-task-btn').onclick = () => {
+                this.todoManager.deleteTask(this.activeDesk, task.id);
+                this.renderTodos();
+            };
+
+            list.appendChild(li);
+        });
     }
 }
