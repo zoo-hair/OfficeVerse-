@@ -1057,9 +1057,50 @@ body {
     height: 8px;
     border-radius: 50%;
     background: #4a90e2;
-    flex-shrink: 0;
-}
 
-.status-dot.done {
-    background: #4ade80;
-}
+    .premium-btn:hover {
+        transform: translateY(-4px) scale(1.02);
+        box-shadow: 0 10px 30px rgba(0, 145, 234, 0.5);
+        filter: brightness(1.1);
+    }
+
+    /* Bonus Rain Visuals */
+    .bonus-money {
+        position: fixed;
+        top: -50px;
+        font-size: 2rem;
+        user-select: none;
+        pointer-events: none;
+        z-index: 99999;
+        animation: moneyFall 3s linear forwards;
+    }
+
+    @keyframes moneyFall {
+        0% {
+            transform: translateY(0) rotate(0deg);
+            opacity: 1;
+        }
+
+        100% {
+            transform: translateY(110vh) rotate(360deg);
+            opacity: 0;
+        }
+    }
+
+    .gold-tint {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(255, 215, 0, 0.1);
+        box-shadow: inset 0 0 100px rgba(255, 215, 0, 0.2);
+        pointer-events: none;
+        z-index: 99998;
+        opacity: 0;
+        transition: opacity 1s;
+    }
+
+    .gold-tint.active {
+        opacity: 1;
+    }

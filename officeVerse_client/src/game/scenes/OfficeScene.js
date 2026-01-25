@@ -45,11 +45,6 @@ export default class OfficeScene extends Phaser.Scene {
 
         console.log('--- OfficeScene Initialization ---');
         console.log('Role:', this.playerRole);
-        console.log('Room ID:', this.roomId);
-        console.log('Room Code:', this.roomCode);
-        console.log('Player ID:', this.myPlayerId);
-        console.log('Player Name:', this.myPlayerName);
-        console.log('---------------------------------');
     }
 
     preload() {
@@ -157,6 +152,7 @@ export default class OfficeScene extends Phaser.Scene {
 
         this.setupTodoListeners();
         this.setupBossListeners();
+        this.setupExecutiveListeners();
     }
 
     createAnimations() {
@@ -186,7 +182,7 @@ export default class OfficeScene extends Phaser.Scene {
 
     update(time, delta) {
         const deltaSeconds = delta / 1000;
-        const ratePerSec = 100 / 1800; // 30 minutes cycle
+        const ratePerSec = 100 / 1800;
 
         // Vitals
         this.stress = Math.min(100, this.stress + (ratePerSec * deltaSeconds));
@@ -216,7 +212,7 @@ export default class OfficeScene extends Phaser.Scene {
 
         // Graphics Update
         this.updatePlayerBars();
-        this.blurFX.strength = (this.stress / 100) * 2; // Gradual 0-2px blur
+        this.blurFX.strength = (this.stress / 100) * 2;
 
         // Network
         this.lastSent = this.lastSent || 0;
@@ -244,19 +240,15 @@ export default class OfficeScene extends Phaser.Scene {
         const barH = 4;
         this.barGraphics.clear();
 
-        // Energy (Glow Yellow)
+        // Energy
         this.barGraphics.lineStyle(3, 0xffff00, 0.3);
-        this.barGraphics.strokeRect(x, y, width, barH);
-        this.barGraphics.lineStyle(1, 0xffffff, 0.6);
         this.barGraphics.strokeRect(x, y, width, barH);
         this.barGraphics.fillStyle(0xffff00, 0.9);
         this.barGraphics.fillRect(x, y, width * (this.energy / 100), barH);
         this.energyIcon.setPosition(x - 12, y + 2);
 
-        // Stress (Glow Red)
+        // Stress
         this.barGraphics.lineStyle(3, 0xff0000, 0.3);
-        this.barGraphics.strokeRect(x, y + 8, width, barH);
-        this.barGraphics.lineStyle(1, 0xffffff, 0.6);
         this.barGraphics.strokeRect(x, y + 8, width, barH);
         this.barGraphics.fillStyle(0xff0000, 0.9);
         this.barGraphics.fillRect(x, y + 8, width * (this.stress / 100), barH);
@@ -338,7 +330,6 @@ export default class OfficeScene extends Phaser.Scene {
                 }
             });
         }
-
         if (oz) {
             if (this.currentZone !== oz.name) {
                 this.handleZoneEnter(oz);
@@ -384,12 +375,10 @@ export default class OfficeScene extends Phaser.Scene {
                     this.showPopup('Access Denied: Only the Boss can enter! 🚫');
                 }
                 break;
-            case 'executive': this.showPopup('Welcome, Executive. 💼'); break;
+            case 'executive': this.openExecutivePanel(); break;
             default:
                 if (this.currentZone.match(/^d[1-6]$/)) {
                     this.openTodo(this.currentZone);
-                } else {
-                    this.showPopup(`Interacted with ${this.currentZone}`);
                 }
                 break;
         }
@@ -421,24 +410,18 @@ export default class OfficeScene extends Phaser.Scene {
     setupTodoListeners() {
         const closeBtn = document.getElementById('close-todo-btn');
         if (closeBtn) closeBtn.onclick = () => this.closeTodo();
-
         const addBtn = document.getElementById('add-todo-btn');
         if (addBtn) addBtn.onclick = () => this.addTodo();
-
         const input = document.getElementById('todo-input');
-        if (input) input.onkeydown = (e) => {
-            if (e.key === 'Enter') this.addTodo();
-        };
+        if (input) input.onkeydown = (e) => { if (e.key === 'Enter') this.addTodo(); };
     }
 
     openTodo(deskId) {
         this.activeDesk = deskId;
         const title = document.getElementById('todo-title');
         if (title) title.textContent = `Desk ${deskId.toUpperCase()} - To-Do List`;
-
         const overlay = document.getElementById('todo-list-overlay');
         if (overlay) overlay.style.display = 'flex';
-
         this.renderTodos();
     }
 
@@ -446,7 +429,6 @@ export default class OfficeScene extends Phaser.Scene {
         this.activeDesk = null;
         const overlay = document.getElementById('todo-list-overlay');
         if (overlay) overlay.style.display = 'none';
-
         const input = document.getElementById('todo-input');
         if (input) input.value = '';
     }
@@ -468,7 +450,6 @@ export default class OfficeScene extends Phaser.Scene {
         if (!list) return;
         list.innerHTML = '';
         const tasks = this.todoManager.getTasks(this.activeDesk);
-
         tasks.forEach(task => {
             const li = document.createElement('li');
             li.className = `todo-item ${task.completed ? 'completed' : ''}`;
@@ -477,22 +458,17 @@ export default class OfficeScene extends Phaser.Scene {
                 <span>${task.text}</span>
                 <button class="delete-task-btn" ${task.immutable ? 'style="display:none"' : ''}>&times;</button>
             `;
-
             li.querySelector('input').onclick = () => {
                 this.todoManager.toggleTask(this.activeDesk, task.id);
                 this.renderTodos();
             };
-
             if (!task.immutable) {
                 const deleteBtn = li.querySelector('.delete-task-btn');
-                if (deleteBtn) {
-                    deleteBtn.onclick = () => {
-                        this.todoManager.deleteTask(this.activeDesk, task.id);
-                        this.renderTodos();
-                    };
-                }
+                if (deleteBtn) deleteBtn.onclick = () => {
+                    this.todoManager.deleteTask(this.activeDesk, task.id);
+                    this.renderTodos();
+                };
             }
-
             list.appendChild(li);
         });
     }
@@ -501,16 +477,11 @@ export default class OfficeScene extends Phaser.Scene {
     setupBossListeners() {
         const closeBtn = document.getElementById('close-boss-btn');
         if (closeBtn) closeBtn.onclick = () => this.closeBossPanel();
-
         const assignBtn = document.getElementById('assign-boss-task-btn');
         if (assignBtn) assignBtn.onclick = () => this.assignBossTask();
-
         const input = document.getElementById('boss-task-input');
-        if (input) input.onkeydown = (e) => {
-            if (e.key === 'Enter') this.assignBossTask();
-        };
+        if (input) input.onkeydown = (e) => { if (e.key === 'Enter') this.assignBossTask(); };
 
-        // Desk Selection Grid Logic
         const deskBoxes = document.querySelectorAll('.desk-box');
         deskBoxes.forEach(box => {
             box.onclick = () => {
@@ -534,7 +505,6 @@ export default class OfficeScene extends Phaser.Scene {
         const overlay = document.getElementById('boss-panel-overlay');
         if (overlay) {
             overlay.style.display = 'flex';
-            // Clear detail and reset grid
             const list = document.getElementById('boss-detail-list');
             if (list) list.innerHTML = '';
             const title = document.getElementById('detail-title');
@@ -547,23 +517,17 @@ export default class OfficeScene extends Phaser.Scene {
         const list = document.getElementById('boss-detail-list');
         const title = document.getElementById('detail-title');
         if (!list || !title) return;
-
         title.textContent = `Tasks for Desk ${deskId.toUpperCase()}`;
         list.innerHTML = '';
-
         const tasks = this.todoManager.getTasks(deskId);
         if (tasks.length === 0) {
             list.innerHTML = '<li style="color:#666; font-style:italic">No active tasks found</li>';
             return;
         }
-
         tasks.forEach(t => {
             const li = document.createElement('li');
             li.className = `boss-read-only-item ${t.completed ? 'done' : ''}`;
-            li.innerHTML = `
-                <span class="status-dot ${t.completed ? 'done' : ''}"></span>
-                ${t.text}
-            `;
+            li.innerHTML = `<span class="status-dot ${t.completed ? 'done' : ''}"></span>${t.text}`;
             list.appendChild(li);
         });
     }
@@ -571,7 +535,6 @@ export default class OfficeScene extends Phaser.Scene {
     closeBossPanel() {
         const overlay = document.getElementById('boss-panel-overlay');
         if (overlay) overlay.style.display = 'none';
-
         const input = document.getElementById('boss-task-input');
         if (input) input.value = '';
     }
@@ -593,12 +556,10 @@ export default class OfficeScene extends Phaser.Scene {
     updateDeskNotifications() {
         if (this.deskNotifications) this.deskNotifications.forEach(n => n.destroy());
         this.deskNotifications = [];
-
         const desks = [
             { id: 'd1', x: 460, y: 100 }, { id: 'd2', x: 580, y: 100 }, { id: 'd3', x: 720, y: 95 },
             { id: 'd4', x: 460, y: 190 }, { id: 'd5', x: 590, y: 195 }, { id: 'd6', x: 715, y: 190 }
         ];
-
         desks.forEach(d => {
             const hasBossTask = this.todoManager.getTasks(d.id).some(t => t.immutable && !t.completed);
             if (hasBossTask) {
@@ -608,5 +569,59 @@ export default class OfficeScene extends Phaser.Scene {
                 this.deskNotifications.push(bulb);
             }
         });
+    }
+
+    /* ---------------- EXECUTIVE PANEL / BONUS ---------------- */
+    setupExecutiveListeners() {
+        const closeBtn = document.getElementById('close-executive-btn');
+        if (closeBtn) closeBtn.onclick = () => this.closeExecutivePanel();
+
+        const triggerBtn = document.getElementById('trigger-bonus-btn');
+        if (triggerBtn) triggerBtn.onclick = () => this.triggerBonus();
+
+        window.handleBonusRainReceived = () => this.handleBonusRain();
+    }
+
+    openExecutivePanel() {
+        const overlay = document.getElementById('executive-panel-overlay');
+        if (overlay) overlay.style.display = 'flex';
+    }
+
+    closeExecutivePanel() {
+        const overlay = document.getElementById('executive-panel-overlay');
+        if (overlay) overlay.style.display = 'none';
+    }
+
+    triggerBonus() {
+        if (window.sendGlobalMessage) {
+            window.sendGlobalMessage('BONUS_RAIN');
+            this.showPopup('Office-wide Bonus Triggered! 🤑');
+            this.closeExecutivePanel();
+            this.handleBonusRain();
+        }
+    }
+
+    handleBonusRain() {
+        const tint = document.createElement('div');
+        tint.className = 'gold-tint active';
+        document.body.appendChild(tint);
+
+        const emojis = ['💰', '💵', '💎', '🚀', '🤑'];
+        for (let i = 0; i < 40; i++) {
+            setTimeout(() => {
+                const money = document.createElement('div');
+                money.className = 'bonus-money';
+                money.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+                money.style.left = Math.random() * 100 + 'vw';
+                money.style.animationDuration = (2 + Math.random() * 2) + 's';
+                document.body.appendChild(money);
+                setTimeout(() => money.remove(), 4000);
+            }, i * 100);
+        }
+
+        setTimeout(() => {
+            tint.classList.remove('active');
+            setTimeout(() => tint.remove(), 1000);
+        }, 5000);
     }
 }

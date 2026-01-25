@@ -249,6 +249,12 @@ export function initChat(playerId, playerName, roomId, roomDisplayCode) {
                 return; // Don't show in chat history
             }
 
+            // Bonus Rain Logic
+            if (msg === 'BONUS_RAIN') {
+                if (window.handleBonusRainReceived) window.handleBonusRainReceived();
+                return; // Don't show in chat history
+            }
+
             const senderName = playerNamesMap[sender] || sender;
             const type = (sender == playerId) ? 'sent' : 'received';
             const name = (sender == playerId) ? 'You' : senderName;
