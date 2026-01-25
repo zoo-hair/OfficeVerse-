@@ -4160,7 +4160,7 @@
                                    "y": 402.666666666667
                             },
                             {
-                                   "height": 100,
+                                   "height": 150,
                                    "id": 25,
                                    "name": "d1",
                                    "rotation": 0,
@@ -4168,10 +4168,10 @@
                                    "visible": true,
                                    "width": 100,
                                    "x": 410,
-                                   "y": 110
+                                   "y": 60
                             },
                             {
-                                   "height": 100,
+                                   "height": 150,
                                    "id": 26,
                                    "name": "d2",
                                    "rotation": 0,
@@ -4179,7 +4179,7 @@
                                    "visible": true,
                                    "width": 100,
                                    "x": 530,
-                                   "y": 110
+                                   "y": 60
                             },
                             {
                                    "height": 82,

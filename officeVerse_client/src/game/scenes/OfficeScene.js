@@ -321,7 +321,6 @@ export default class OfficeScene extends Phaser.Scene {
 
     handleZoneEnter(z) {
         if (this.currentZone !== z.name) {
-            console.log(`[DEBUG] Entering zone: ${z.name}`);
             this.currentZone = z.name;
             this.showZonePrompt(z.name);
         }
@@ -342,7 +341,6 @@ export default class OfficeScene extends Phaser.Scene {
                 this.handleZoneEnter(oz);
             }
         } else if (this.currentZone) {
-            console.log(`[DEBUG] Exiting zone: ${this.currentZone}`);
             this.hideZonePrompt();
             if (this.activeDesk) this.closeTodo();
         }
