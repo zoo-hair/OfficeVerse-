@@ -1,10 +1,10 @@
 <div align="center">
 
-![OfficeVerse Hero Banner](assets/branding/hero.png)
+![OfficeVerse Hero Banner](assets/branding/officeverse_hero.png)
 
 # 🏢 OfficeVerse
 
-### **The Ultimate Multiplayer Office Metaverse**
+### **The Ultimate Multiplayer OfficeVerse**
 
 *Work, Collaborate, and Have Fun in Your Virtual Office!*
 
@@ -122,7 +122,7 @@ npm install
 npm run dev
 ```
 
-### 3️⃣ Enter the Metaverse
+### 3️⃣ Enter the OfficeVerse
 
 Open `http://localhost:5173` and start your new work life! 🚀
 
@@ -135,7 +135,7 @@ Open `http://localhost:5173` and start your new work life! 🚀
 
 | Command | Action |
 |:---|:---|
-| `Arrows / WASD` | Navigate the Metaverse |
+| `Arrows / WASD` | Navigate the OfficeVerse |
 | `F` | Interact with the World |
 | `E` | Chat with Colleagues |
 | `Enter` | Submit / Send |
