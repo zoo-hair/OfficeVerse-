@@ -5,6 +5,7 @@ A multiplayer 2D office simulator built with Phaser 3.
 ## 🚀 Quick Start
 
 ### Prerequisites
+
 - Node.js 18+
 - npm or yarn
 
@@ -34,15 +35,28 @@ officeverse-frontend/
 │   ├── main.js             # Entry point
 │   ├── launcher/           # Pre-game UI scenes
 │   ├── game/               # Core game logic
-│   │   ├── scenes/         # Phaser scenes
+│   │   ├── scenes/         # Phaser scenes (Core game logic only)
 │   │   ├── entities/       # Player, NPC, RemotePlayer
-│   │   ├── ui/             # ChatBox, PlayerList, MiniMap
+│   │   ├── ui/             # Modular UI components (Separated from scenes)
+│   │   │   ├── LoginUI.js
+│   │   │   ├── TodoUI.js
+│   │   │   ├── BossPanelUI.js
+│   │   │   ├── GenAIUI.js
+│   │   │   └── ExecutiveUI.js
 │   │   ├── map/            # Tilemap loader
 │   │   └── input/          # Keyboard input
 │   ├── network/            # API & WebSocket clients
 │   ├── state/              # Global game state
 │   └── utils/              # Constants, helpers, config
 ```
+
+## 🏗️ Architecture
+
+The frontend follows a **Modular UI Architecture**:
+
+- **Phaser Scenes**: Focus exclusively on the game world, player physics, and networking.
+- **UI Components**: Specialized classes that handle HTML DOM elements, event listeners, and UI-specific logic.
+- **Separation of Concerns**: This approach reduces the complexity of main scene files like `OfficeScene.js` by over 50%.
 
 ## 🎮 Features
 
@@ -67,16 +81,20 @@ VITE_WS_URL=ws://localhost:3000
 Place the following in `public/assets/`:
 
 ### Tilesets
+
 - `tilesets/office_tileset.png` - Office tileset image
 
 ### Maps
+
 - `maps/office_map.json` - Tiled JSON map export
 
 ### Sprites
+
 - `sprites/Owlet_Monster_Idle_4.png` - Idle animation (32x32 frames)
 - `sprites/Owlet_Monster_Walk_6.png` - Walk animation (32x32 frames)
 
 ### Audio (Optional)
+
 - `audio/walk.wav`
 - `audio/join.wav`
 - `audio/chat.wav`

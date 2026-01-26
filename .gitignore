@@ -1,10 +1,14 @@
+# General
+logs
+*.log
+.DS_Store
+Thumbs.db
+
 # IDEs and Editors
 .idea/
 .vscode/
 *.swp
 *.swo
-.DS_Store
-Thumbs.db
 
 # Node.js
 **/node_modules/
@@ -13,18 +17,21 @@ Thumbs.db
 **/yarn-error.log*
 **/package-lock.json
 **/yarn.lock
+dist/
+coverage/
 
-# Gradle
-**/.gradle/
-**/build/
-!**/src/main/**/build/
-
-# Java
+# Java & Gradle
+.gradle/
+build/
+**/bin/
 **/*.class
 **/*.jar
 **/*.war
 **/*.ear
 
-# General
-logs
-*.log
+# Environment
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
