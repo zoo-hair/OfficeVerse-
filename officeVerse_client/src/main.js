@@ -14,21 +14,17 @@ import OfficeScene from './game/scenes/OfficeScene.js';
 import UIScene from './game/scenes/UIScene.js';
 
 const config = {
+    
     type: Phaser.AUTO,
-    parent: 'game-container',
-    scale: {
-        mode: Phaser.Scale.RESIZE,
-        autoCenter: Phaser.Scale.CENTER_BOTH,
-        width: '100%',
-        height: '100%'
-    },
+    width: 900, //640
+    height: 600, //480*/
     physics: {
         default: 'arcade',
         arcade: {
             debug: false
         }
     },
-    scene: [BootScene, OfficeScene, UIScene]
+    scene: [BootScene, OfficeScene, UIScene]  // [OfficeScene]
 };
 
 const game = new Phaser.Game(config);

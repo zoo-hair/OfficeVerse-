@@ -3,16 +3,29 @@ export default class RemotePlayer {
     this.scene = scene;
     this.playerId = data.playerId;
     this.playerName = data.playerName;
+    this.characterType = data.characterType || 'owlet';
+
+    // Character configs
+    const characterConfigs = {
+      owlet: { idle: 'Owlet_Monster_Idle' },
+      dude: { idle: 'Dude_Monster_Idle' },
+      pink: { idle: 'Pink_Monster_Idle' }
+    };
+
+    const config = characterConfigs[this.characterType] || characterConfigs.owlet;
 
     // Create sprite
-    this.sprite = scene.physics.add.sprite(data.x, data.y, 'Owlet_Monster_Idle', 0);
-    this.sprite.setScale(2);
-    this.sprite.setTint(0x88ccff); // Tint to differentiate remote players
+    this.sprite = scene.physics.add.sprite(data.x, data.y, config.idle, 0);
+    this.sprite.setScale(1.25);
+    this.sprite.setTint(data.skin || 0x88ccff);
+    this.sprite.body.setAllowGravity(false);
+    this.sprite.body.setSize(20, 20);
+    this.sprite.body.setOffset(6, 10);
 
     // Name tag
     this.nameTag = scene.add.text(data.x, data.y - 40, data.playerName, {
       fontSize: '14px',
-      color: '#88ccff',
+      color: '#ffffff',
       backgroundColor: '#000000',
       padding: { x: 6, y: 3 }
     }).setOrigin(0.5);
@@ -23,7 +36,7 @@ export default class RemotePlayer {
     this.interpolationSpeed = 0.2;
 
     // Play idle animation
-    this.sprite.anims.play('idle', true);
+    this.sprite.anims.play(`${this.characterType}_idle`, true);
   }
 
   updatePosition(x, y) {
@@ -40,15 +53,15 @@ export default class RemotePlayer {
       if (Math.abs(dx) > Math.abs(dy)) {
         // Horizontal movement
         this.sprite.setFlipX(dx < 0);
-        this.sprite.anims.play('walk-right', true);
+        this.sprite.anims.play(`${this.characterType}_walk`, true);
       } else {
         // Vertical movement
-        this.sprite.anims.play(dy < 0 ? 'walk-up' : 'walk-down', true);
+        this.sprite.anims.play(`${this.characterType}_walk`, true);
       }
     } else {
       // Idle
-      if (this.sprite.anims.currentAnim?.key !== 'idle') {
-        this.sprite.anims.play('idle', true);
+      if (this.sprite.anims.currentAnim?.key !== `${this.characterType}_idle`) {
+        this.sprite.anims.play(`${this.characterType}_idle`, true);
       }
     }
   }

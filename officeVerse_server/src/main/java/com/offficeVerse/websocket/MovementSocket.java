@@ -38,9 +38,9 @@ public class MovementSocket extends TextWebSocketHandler {
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
 
         String[] parts = message.getPayload().split(":");
-        // Format: roomId:playerId:x:y:name:skin:anim:flip
-        if (parts.length < 4 || parts.length > 8) {
-            session.sendMessage(new TextMessage("Invalid format. Use roomId:playerId:x:y[:name][:skin][:anim][:flip]"));
+        // Format: roomId:playerId:x:y:name:skin:character:anim:flip
+        if (parts.length < 4 || parts.length > 9) {
+            session.sendMessage(new TextMessage("Invalid format. Use roomId:playerId:x:y[:name][:skin][:character][:anim][:flip]"));
             return;
         }
 
@@ -51,8 +51,9 @@ public class MovementSocket extends TextWebSocketHandler {
             int y = Integer.parseInt(parts[3]);
             String name = (parts.length >= 5) ? parts[4] : "Unknown";
             String skin = (parts.length >= 6) ? parts[5] : "0xffffff";
-            String anim = (parts.length >= 7) ? parts[6] : "idle";
-            String flip = (parts.length == 8) ? parts[7] : "0";
+            String character = (parts.length >= 7) ? parts[6] : "owlet";
+            String anim = (parts.length >= 8) ? parts[7] : "idle";
+            String flip = (parts.length == 9) ? parts[8] : "0";
 
             // Register session in room if not already
             if (!sessionInfo.containsKey(session.getId())) {
@@ -64,7 +65,7 @@ public class MovementSocket extends TextWebSocketHandler {
             Map<String, WebSocketSession> peers = roomSessions.get(roomId);
             if (peers != null) {
                 TextMessage broadcastMsg = new TextMessage("Broadcast:" + playerId + ":" + x + ":" + y + ":" + name
-                        + ":" + skin + ":" + anim + ":" + flip);
+                        + ":" + skin + ":" + character + ":" + anim + ":" + flip);
                 for (WebSocketSession s : peers.values()) {
                     if (s.isOpen()) {
                         try {

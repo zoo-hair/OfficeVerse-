@@ -193,6 +193,29 @@
         </div>
     </div>
 
+    <!-- GenAI Panel -->
+    <div id="genai-panel-overlay" style="display: none;">
+        <div id="genai-modal">
+            <div id="genai-header">
+                <h2 id="genai-title">AI Assistant 🤖</h2>
+                <button id="close-genai-btn">&times;</button>
+            </div>
+            <div id="genai-panel-content">
+                <div id="genai-chat-history" class="genai-chat-history">
+                    <div class="genai-message system">Hello! I'm your AI Assistant powered by Mistral. Ask me anything!</div>
+                </div>
+                <div id="genai-input-area">
+                    <input type="text" id="genai-input" placeholder="Ask me something..." maxlength="500">
+                    <button id="genai-send-btn">Send</button>
+                </div>
+                <div id="genai-loading" style="display: none;" class="genai-loading">
+                    <span class="genai-spinner"></span>
+                    <span>Thinking...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="game-container"></div>
 </body>
 

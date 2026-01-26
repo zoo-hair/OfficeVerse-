@@ -1,6 +1,7 @@
 import * as Phaser from 'https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.esm.js';
 import { connectMovement, sendMovement } from '../../network/movementSocket.js';
 import { initChat } from '../../network/ChatModule.js';
+import { sendPromptToGenAI } from '../../network/GenAIModule.js';
 import ZoneManager from '../map/ZoneManager.js';
 import MiniMap from '../ui/MiniMap.js';
 import TodoManager from '../ui/TodoManager.js';
@@ -153,6 +154,7 @@ export default class OfficeScene extends Phaser.Scene {
         this.setupTodoListeners();
         this.setupBossListeners();
         this.setupExecutiveListeners();
+        this.setupGenAIListeners();
     }
 
     createAnimations() {
@@ -231,6 +233,7 @@ export default class OfficeScene extends Phaser.Scene {
         }
 
         if (Phaser.Input.Keyboard.JustDown(this.fKey)) this.handleZoneInteraction();
+        if (Phaser.Input.Keyboard.JustDown(this.eKey)) this.handlePlayerInteraction();
     }
 
     updatePlayerBars() {
@@ -262,20 +265,31 @@ export default class OfficeScene extends Phaser.Scene {
             if (parts[0] !== 'Broadcast') return;
 
             let idx = 1;
-            if (parts.length >= 10) { if (this.roomId && parts[1] != this.roomId) return; idx = 2; }
+            if (parts.length >= 11) { if (this.roomId && parts[1] != this.roomId) return; idx = 2; }
             const id = Number(parts[idx]);
             if (isNaN(id) || id === this.myPlayerId) return;
 
-            const x = Number(parts[idx + 1]), y = Number(parts[idx + 2]), name = parts[idx + 3], skin = parseInt(parts[idx + 4]), char = parts[idx + 5], anim = parts[idx + 6], flip = parts[idx + 7] === '1';
+            const x = Number(parts[idx + 1]);
+            const y = Number(parts[idx + 2]);
+            const name = parts[idx + 3];
+            const skin = parseInt(parts[idx + 4]);
+            const char = parts[idx + 5];
+            const anim = parts[idx + 6];
+            const flip = parts[idx + 7] === '1';
 
             if (!this.otherPlayers[id]) {
                 const sprite = this.physics.add.sprite(x, y, this.characterConfigs[char]?.idle || 'Owlet_Monster_Idle');
                 sprite.body.setAllowGravity(false);
+                sprite.setScale(1.25);
                 sprite.setTint(skin);
                 sprite.characterType = char;
+                sprite.body.setSize(20, 20);
+                sprite.body.setOffset(6, 10);
                 sprite.play(`${char}_${anim}`, true);
                 sprite.setFlipX(flip);
+                sprite.setDepth(y);
                 const label = this.add.text(x, y - 40, name, { font: '14px Arial', fill: '#fff', stroke: '#000', strokeThickness: 3 }).setOrigin(0.5);
+                label.setDepth(y + 1000);
                 this.otherPlayers[id] = { sprite, label };
             } else {
                 const p = this.otherPlayers[id];
@@ -310,6 +324,13 @@ export default class OfficeScene extends Phaser.Scene {
     showInteractionPrompt(p) {
         if (!this.interactionPrompt) this.interactionPrompt = this.add.text(0, 0, '', { font: '14px Arial', fill: '#4a90e2', stroke: '#000', strokeThickness: 3 }).setOrigin(0.5);
         this.interactionPrompt.setText('[E] Interact').setPosition(p.sprite.x, p.sprite.y - 55).setDepth(p.sprite.y + 2000).setVisible(true);
+    }
+
+    handlePlayerInteraction() {
+        if (this.nearbyPlayer && window.selectPlayerForChat) {
+            window.selectPlayerForChat(this.nearbyPlayer.id);
+            this.showPopup(`Started private chat with ${this.nearbyPlayer.id}! 💬`);
+        }
     }
 
     hideInteractionPrompt() { if (this.interactionPrompt) this.interactionPrompt.setVisible(false); }
@@ -363,7 +384,7 @@ export default class OfficeScene extends Phaser.Scene {
         if (!this.currentZone) return;
         switch (this.currentZone) {
             case 'meetingRoom': window.open('https://meet.google.com/new', '_blank'); break;
-            case 'genAI': this.showPopup('AI Assistant coming soon! 🤖'); break;
+            case 'genAI': this.openGenAIPanel(); break;
             case 'gaming': this.showPopup('Gaming coming soon! 🎮'); break;
             case 'exit': if (confirm('Leave office?')) window.location.reload(); break;
             case 'coffee': this.grabCoffee(); break;
@@ -623,5 +644,97 @@ export default class OfficeScene extends Phaser.Scene {
             tint.classList.remove('active');
             setTimeout(() => tint.remove(), 1000);
         }, 5000);
+    }
+
+    /* ---------------- GENAI PANEL / MISTRAL AI ASSISTANT ---------------- */
+    setupGenAIListeners() {
+        const closeBtn = document.getElementById('close-genai-btn');
+        if (closeBtn) closeBtn.onclick = () => this.closeGenAIPanel();
+
+        const sendBtn = document.getElementById('genai-send-btn');
+        if (sendBtn) sendBtn.onclick = () => this.sendGenAIPrompt();
+
+        const input = document.getElementById('genai-input');
+        if (input) {
+            input.onkeypress = (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    this.sendGenAIPrompt();
+                }
+            };
+        }
+    }
+
+    openGenAIPanel() {
+        if (!isApiConfigured()) {
+            this.showPopup('⚠️ API Key not configured! Check GenAIModule.js');
+            return;
+        }
+
+        const overlay = document.getElementById('genai-panel-overlay');
+        if (overlay) {
+            overlay.style.display = 'flex';
+            const input = document.getElementById('genai-input');
+            if (input) input.focus();
+        }
+    }
+
+    closeGenAIPanel() {
+        const overlay = document.getElementById('genai-panel-overlay');
+        if (overlay) overlay.style.display = 'none';
+        const input = document.getElementById('genai-input');
+        if (input) input.value = '';
+    }
+
+    async sendGenAIPrompt() {
+        const input = document.getElementById('genai-input');
+        if (!input || !input.value.trim()) return;
+
+        const prompt = input.value.trim();
+        input.value = '';
+
+        // Add user message to chat history
+        this.addGenAIMessage(prompt, 'user');
+
+        // Show loading state
+        const loadingDiv = document.getElementById('genai-loading');
+        const sendBtn = document.getElementById('genai-send-btn');
+        if (loadingDiv) loadingDiv.style.display = 'flex';
+        if (sendBtn) sendBtn.disabled = true;
+
+        try {
+            // Send prompt to backend server
+            const response = await sendPromptToGenAI(prompt, this.roomId);
+            this.addGenAIMessage(response, 'ai');
+        } catch (error) {
+            console.error('GenAI Error:', error);
+            const errorMsg = `❌ Error: ${error.message}`;
+            this.addGenAIMessage(errorMsg, 'system');
+        } finally {
+            if (loadingDiv) loadingDiv.style.display = 'none';
+            if (sendBtn) sendBtn.disabled = false;
+            const inputElement = document.getElementById('genai-input');
+            if (inputElement) inputElement.focus();
+        }
+    }
+
+    addGenAIMessage(text, sender = 'system') {
+        const chatHistory = document.getElementById('genai-chat-history');
+        if (!chatHistory) return;
+
+        const messageEl = document.createElement('div');
+        messageEl.className = `genai-message ${sender}`;
+        messageEl.textContent = text;
+        chatHistory.appendChild(messageEl);
+
+        // Auto-scroll to bottom
+        chatHistory.scrollTop = chatHistory.scrollHeight;
+    }
+
+    clearGenAIHistory() {
+        const chatHistory = document.getElementById('genai-chat-history');
+        if (chatHistory) {
+            chatHistory.innerHTML = '<div class="genai-message system">Hello! I\'m your AI Assistant powered by Mistral. Ask me anything!</div>';
+        }
     }
 }
