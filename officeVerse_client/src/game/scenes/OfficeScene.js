@@ -383,9 +383,10 @@ export default class OfficeScene extends Phaser.Scene {
     handleZoneInteraction() {
         if (!this.currentZone) return;
         switch (this.currentZone) {
+            case 'lobby': this.showFeaturesPopup(); break;
             case 'meetingRoom': window.open('https://meet.google.com/new', '_blank'); break;
             case 'genAI': this.openGenAIPanel(); break;
-            case 'gaming': this.showPopup('Gaming coming soon! 🎮'); break;
+            case 'gaming': window.open('https://poki.com/', '_blank'); break;
             case 'exit': if (confirm('Leave office?')) window.location.reload(); break;
             case 'coffee': this.grabCoffee(); break;
             case 'zenRoom': this.toggleZenMode(); break;
@@ -786,5 +787,63 @@ export default class OfficeScene extends Phaser.Scene {
         if (chatHistory) {
             chatHistory.innerHTML = '<div class="genai-message system"><strong>Welcome!</strong> I\'m powered by Mistral AI. Ask me questions, get advice, or brainstorm ideas!</div>';
         }
+    }
+
+    showFeaturesPopup() {
+        setTimeout(() => {
+            const overlay = document.getElementById('features-popup-overlay');
+            if (!overlay) {
+                console.error('Features popup overlay not found in DOM');
+                return;
+            }
+            overlay.style.display = 'flex';
+
+            // Setup close button
+            const closeBtn = document.getElementById('features-popup-close');
+            if (closeBtn) {
+                closeBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    overlay.style.display = 'none';
+                };
+            }
+
+            // Setup feature buttons
+            const techBlogBtn = document.getElementById('feature-techblog');
+            if (techBlogBtn) {
+                techBlogBtn.onclick = (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    window.open('https://technewsworld.com/', '_blank');
+                    overlay.style.display = 'none';
+                };
+            }
+
+            const coming1Btn = document.getElementById('feature-coming1');
+            if (coming1Btn) {
+                coming1Btn.onclick = (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    alert('Coming Soon! 🚀');
+                    overlay.style.display = 'none';
+                };
+            }
+
+            const coming2Btn = document.getElementById('feature-coming2');
+            if (coming2Btn) {
+                coming2Btn.onclick = (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    alert('Coming Soon! 🚀');
+                    overlay.style.display = 'none';
+                };
+            }
+
+            // Close on outside click
+            overlay.onclick = (e) => {
+                if (e.target === overlay) {
+                    overlay.style.display = 'none';
+                }
+            };
+        }, 100);
     }
 }
