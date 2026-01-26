@@ -666,17 +666,14 @@ export default class OfficeScene extends Phaser.Scene {
     }
 
     openGenAIPanel() {
-        if (!isApiConfigured()) {
-            this.showPopup('⚠️ API Key not configured! Check GenAIModule.js');
-            return;
-        }
-
         const overlay = document.getElementById('genai-panel-overlay');
         if (overlay) {
             overlay.style.display = 'flex';
             const input = document.getElementById('genai-input');
             if (input) input.focus();
         }
+        // Clear previous chat history when opening panel
+        this.clearGenAIHistory();
     }
 
     closeGenAIPanel() {

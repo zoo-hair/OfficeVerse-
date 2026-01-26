@@ -23,6 +23,7 @@ public class genAIService {
     private String modelName;
     
     private static final String HF_ENDPOINT = "https://api-inference.huggingface.co/models/";
+    private static final String HF_ROUTER_ENDPOINT = "https://api-inference.huggingface.co/models/";
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
     
@@ -49,9 +50,17 @@ public class genAIService {
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("Authorization", "Bearer " + huggingFaceApiKey);
         
-        // Build request body
+        // Build request body using the chat format
         Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("inputs", prompt);
+        
+        // Use messages format for better compatibility
+        List<Map<String, String>> messages = new ArrayList<>();
+        Map<String, String> userMessage = new HashMap<>();
+        userMessage.put("role", "user");
+        userMessage.put("content", prompt);
+        messages.add(userMessage);
+        
+        requestBody.put("messages", messages);
         
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("max_new_tokens", 512);
@@ -62,11 +71,24 @@ public class genAIService {
         String jsonBody = objectMapper.writeValueAsString(requestBody);
         HttpEntity<String> entity = new HttpEntity<>(jsonBody, headers);
         
-        // Make API call
-        String response = restTemplate.postForObject(url, entity, String.class);
-        
-        // Parse response
-        return parseHuggingFaceResponse(response);
+        try {
+            // Make API call
+            String response = restTemplate.postForObject(url, entity, String.class);
+            
+            // Parse response
+            return parseHuggingFaceResponse(response);
+        } catch (Exception e) {
+            // Fallback to simple inputs format if messages format fails
+            requestBody.clear();
+            requestBody.put("inputs", prompt);
+            requestBody.put("parameters", parameters);
+            
+            jsonBody = objectMapper.writeValueAsString(requestBody);
+            entity = new HttpEntity<>(jsonBody, headers);
+            
+            String response = restTemplate.postForObject(url, entity, String.class);
+            return parseHuggingFaceResponse(response);
+        }
     }
     
     /**
@@ -75,7 +97,7 @@ public class genAIService {
     private String parseHuggingFaceResponse(String jsonResponse) throws Exception {
         JsonNode root = objectMapper.readTree(jsonResponse);
         
-        // Handle array response
+        // Handle array response (traditional format)
         if (root.isArray() && root.size() > 0) {
             JsonNode firstElement = root.get(0);
             if (firstElement.has("generated_text")) {
@@ -84,9 +106,27 @@ public class genAIService {
             }
         }
         
-        // Handle direct response object
+        // Handle direct response object with generated_text
         if (root.has("generated_text")) {
             return root.get("generated_text").asText().trim();
+        }
+        
+        // Handle chat format response
+        if (root.isArray() && root.size() > 0) {
+            JsonNode firstElement = root.get(0);
+            // For message format responses
+            if (firstElement.has("content")) {
+                return firstElement.get("content").asText().trim();
+            }
+            // For generated_text format
+            if (firstElement.has("generated_text")) {
+                String text = firstElement.get("generated_text").asText();
+                // Extract just the response part if it includes the prompt
+                if (text.contains("[/INST]")) {
+                    text = text.split("\\[/INST\\]")[1].trim();
+                }
+                return text.trim();
+            }
         }
         
         return "No response generated from AI model";
