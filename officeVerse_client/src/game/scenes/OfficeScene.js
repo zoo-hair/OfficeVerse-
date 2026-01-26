@@ -648,6 +648,12 @@ export default class OfficeScene extends Phaser.Scene {
 
     /* ---------------- GENAI PANEL / MISTRAL AI ASSISTANT ---------------- */
     setupGenAIListeners() {
+        // Initialize API Key Module for GenAI
+        import('../../network/APIKeyModule.js').then(module => {
+            const { initializeAPIKeyManagement } = module;
+            initializeAPIKeyManagement();
+        });
+
         const closeBtn = document.getElementById('close-genai-btn');
         if (closeBtn) closeBtn.onclick = () => this.closeGenAIPanel();
 
@@ -656,24 +662,71 @@ export default class OfficeScene extends Phaser.Scene {
 
         const input = document.getElementById('genai-input');
         if (input) {
-            input.onkeypress = (e) => {
+            // Prevent Phaser from capturing keyboard events when input is focused
+            input.addEventListener('focus', () => {
+                this.input.keyboard.enabled = false;
+            });
+
+            input.addEventListener('blur', () => {
+                this.input.keyboard.enabled = true;
+            });
+
+            // Character counter
+            const charCount = document.getElementById('genai-char-count');
+            input.addEventListener('input', (e) => {
+                if (charCount) {
+                    charCount.textContent = `${e.target.value.length}/500`;
+                    // Visual feedback when near limit
+                    if (e.target.value.length > 450) {
+                        charCount.style.color = 'rgba(255, 150, 100, 0.8)';
+                    } else {
+                        charCount.style.color = 'rgba(200, 200, 200, 0.5)';
+                    }
+                }
+            });
+
+            // Send on Enter
+            input.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
                     this.sendGenAIPrompt();
                 }
+            });
+        }
+
+        // Hide tips after first interaction
+        const tipsEl = document.getElementById('genai-tips');
+        if (tipsEl) {
+            const hideAfterFirstMessage = () => {
+                tipsEl.style.display = 'none';
+                if (input) input.removeEventListener('focus', hideAfterFirstMessage);
             };
+            if (input) input.addEventListener('focus', hideAfterFirstMessage);
         }
     }
 
     openGenAIPanel() {
-        const overlay = document.getElementById('genai-panel-overlay');
-        if (overlay) {
-            overlay.style.display = 'flex';
-            const input = document.getElementById('genai-input');
-            if (input) input.focus();
-        }
-        // Clear previous chat history when opening panel
-        this.clearGenAIHistory();
+        // Import here to avoid circular dependencies
+        import('../../network/APIKeyModule.js').then(module => {
+            const { showAPIKeyModal, isGenAIConfigured } = module;
+            
+            isGenAIConfigured().then(configured => {
+                if (!configured) {
+                    // Show API key configuration modal if not configured
+                    showAPIKeyModal();
+                } else {
+                    // Show GenAI panel if API is configured
+                    const overlay = document.getElementById('genai-panel-overlay');
+                    if (overlay) {
+                        overlay.style.display = 'flex';
+                        const input = document.getElementById('genai-input');
+                        if (input) input.focus();
+                    }
+                    // Clear previous chat history when opening panel
+                    this.clearGenAIHistory();
+                }
+            });
+        });
     }
 
     closeGenAIPanel() {
@@ -731,7 +784,7 @@ export default class OfficeScene extends Phaser.Scene {
     clearGenAIHistory() {
         const chatHistory = document.getElementById('genai-chat-history');
         if (chatHistory) {
-            chatHistory.innerHTML = '<div class="genai-message system">Hello! I\'m your AI Assistant powered by Mistral. Ask me anything!</div>';
+            chatHistory.innerHTML = '<div class="genai-message system"><strong>Welcome!</strong> I\'m powered by Mistral AI. Ask me questions, get advice, or brainstorm ideas!</div>';
         }
     }
 }

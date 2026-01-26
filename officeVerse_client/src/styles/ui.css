@@ -1112,68 +1112,150 @@ body {
     opacity: 1;
 }
 
-/* GenAI Panel Styles */
+/* ========== GenAI Panel Styles - Enhanced UI ========== */
+
 #genai-panel-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.6);
+    background: rgba(0, 0, 0, 0.7);
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 5000;
-    backdrop-filter: blur(4px);
+    backdrop-filter: blur(8px);
+    animation: fadeInOverlay 0.3s ease-out;
+}
+
+@keyframes fadeInOverlay {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 }
 
 #genai-modal {
-    background: linear-gradient(135deg, rgba(30, 30, 40, 0.95), rgba(50, 50, 70, 0.95));
-    border: 2px solid rgba(74, 144, 226, 0.4);
-    border-radius: 16px;
+    background: rgba(20, 30, 50, 0.3);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1.5px solid rgba(100, 200, 255, 0.25);
+    border-radius: 24px;
     width: 90%;
-    max-width: 500px;
-    max-height: 85vh;
+    max-width: 550px;
+    max-height: 80vh;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(74, 144, 226, 0.2);
+    box-shadow: 
+        0 8px 32px 0 rgba(31, 38, 135, 0.37),
+        inset 0 0 20px rgba(100, 212, 255, 0.1),
+        0 0 80px rgba(74, 144, 226, 0.1);
     overflow: hidden;
+    animation: slideUpPanel 0.4s ease-out;
+}
+
+@keyframes slideUpPanel {
+    from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
 }
 
 #genai-header {
-    padding: 16px 20px;
-    border-bottom: 1px solid rgba(74, 144, 226, 0.2);
+    padding: 18px 22px;
+    border-bottom: 1px solid rgba(100, 200, 255, 0.1);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: rgba(0, 0, 0, 0.3);
+    background: linear-gradient(90deg, rgba(100, 200, 255, 0.08), transparent);
+    backdrop-filter: blur(10px);
+}
+
+#genai-title-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
 #genai-title {
     margin: 0;
-    font-size: 1.3rem;
-    color: #4a90e2;
-    text-shadow: 0 0 10px rgba(74, 144, 226, 0.3);
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: #64d4ff;
+    text-shadow: 0 0 15px rgba(74, 144, 226, 0.4);
+    letter-spacing: 0.5px;
+}
+
+.genai-status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    background: linear-gradient(135deg, rgba(100, 212, 255, 0.2), rgba(74, 144, 226, 0.1));
+    color: #64d4ff;
+    border: 1px solid rgba(100, 212, 255, 0.3);
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    position: relative;
+}
+
+.genai-status-badge::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: #64d4ff;
+    border-radius: 50%;
+    margin-right: 6px;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.7;
+        transform: scale(0.8);
+    }
 }
 
 #close-genai-btn {
-    background: transparent;
-    border: none;
+    background: rgba(74, 144, 226, 0.1);
+    border: 1px solid rgba(74, 144, 226, 0.2);
     color: #999;
-    font-size: 1.8rem;
+    font-size: 1.6rem;
     cursor: pointer;
-    padding: 0;
-    width: 30px;
-    height: 30px;
+    padding: 4px 4px;
+    width: 36px;
+    height: 36px;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.2s;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 8px;
+    line-height: 1;
 }
 
 #close-genai-btn:hover {
     color: #fff;
-    transform: rotate(90deg);
+    background: rgba(74, 144, 226, 0.2);
+    border-color: rgba(74, 144, 226, 0.4);
+    transform: rotate(90deg) scale(1.1);
+    box-shadow: 0 0 15px rgba(74, 144, 226, 0.2);
+}
+
+#close-genai-btn:active {
+    transform: rotate(90deg) scale(0.95);
 }
 
 #genai-panel-content {
@@ -1190,137 +1272,690 @@ body {
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    padding: 12px;
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 12px;
-    border: 1px solid rgba(74, 144, 226, 0.1);
+    gap: 12px;
+    padding: 14px;
+    background: rgba(10, 15, 30, 0.2);
+    border-radius: 14px;
+    border: 1px solid rgba(100, 200, 255, 0.15);
+    scroll-behavior: smooth;
+    backdrop-filter: blur(5px);
 }
 
 .genai-message {
-    padding: 10px 12px;
-    border-radius: 8px;
-    max-width: 90%;
+    padding: 12px 14px;
+    border-radius: 12px;
+    max-width: 85%;
     word-wrap: break-word;
     font-size: 0.95rem;
-    line-height: 1.4;
+    line-height: 1.5;
+    animation: fadeInMessage 0.3s ease-out;
+}
+
+@keyframes fadeInMessage {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .genai-message.user {
     align-self: flex-end;
-    background: rgba(74, 144, 226, 0.4);
-    color: #e0e0e0;
-    border: 1px solid rgba(74, 144, 226, 0.5);
+    background: linear-gradient(135deg, rgba(74, 144, 226, 0.5) 0%, rgba(100, 170, 255, 0.3) 100%);
+    color: #ffffff;
+    border: 1px solid rgba(74, 144, 226, 0.6);
+    box-shadow: 0 4px 12px rgba(74, 144, 226, 0.15);
+    font-weight: 500;
 }
 
 .genai-message.ai {
     align-self: flex-start;
-    background: rgba(100, 200, 255, 0.15);
-    color: #d0d0d0;
-    border: 1px solid rgba(100, 200, 255, 0.3);
+    background: linear-gradient(135deg, rgba(100, 200, 255, 0.2) 0%, rgba(74, 160, 220, 0.1) 100%);
+    color: #e8f0ff;
+    border: 1px solid rgba(100, 200, 255, 0.25);
+    box-shadow: 0 4px 12px rgba(100, 200, 255, 0.1);
 }
 
 .genai-message.system {
     align-self: center;
-    background: rgba(255, 255, 255, 0.05);
-    color: #999;
+    background: rgba(200, 100, 100, 0.15);
+    color: #ff9090;
     font-size: 0.85rem;
-    max-width: 85%;
+    max-width: 90%;
     text-align: center;
+    border: 1px solid rgba(200, 100, 100, 0.2);
+    font-style: italic;
 }
 
 #genai-input-area {
     display: flex;
-    gap: 8px;
+    gap: 10px;
+    padding-top: 4px;
+    flex-direction: column;
+}
+
+.genai-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
 }
 
 #genai-input {
     flex: 1;
-    padding: 10px 12px;
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(74, 144, 226, 0.2);
-    border-radius: 8px;
-    color: #e0e0e0;
+    padding: 12px 14px 12px 14px;
+    padding-right: 60px;
+    background: rgba(20, 30, 50, 0.3);
+    border: 1.5px solid rgba(100, 200, 255, 0.2);
+    border-radius: 10px;
+    color: #e8f0ff;
     font-size: 0.95rem;
-    transition: all 0.2s;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-family: inherit;
+    backdrop-filter: blur(10px);
+}
+
+#genai-input::placeholder {
+    color: rgba(200, 200, 200, 0.4);
 }
 
 #genai-input:focus {
     outline: none;
-    border-color: rgba(74, 144, 226, 0.6);
-    background: rgba(0, 0, 0, 0.5);
-    box-shadow: 0 0 10px rgba(74, 144, 226, 0.2);
+    border-color: rgba(100, 212, 255, 0.6);
+    background: rgba(20, 30, 50, 0.5);
+    box-shadow: 
+        0 0 0 3px rgba(100, 212, 255, 0.15),
+        inset 0 0 12px rgba(100, 212, 255, 0.1),
+        0 0 20px rgba(100, 212, 255, 0.2);
 }
 
-#genai-input::placeholder {
-    color: #666;
-}
-
-#genai-send-btn {
-    padding: 10px 20px;
-    background: rgba(74, 144, 226, 0.3);
-    color: #4a90e2;
-    border: 1px solid rgba(74, 144, 226, 0.5);
-    border-radius: 8px;
-    cursor: pointer;
+#genai-char-count {
+    position: absolute;
+    right: 12px;
+    font-size: 0.75rem;
+    color: rgba(200, 200, 200, 0.5);
+    pointer-events: none;
     font-weight: 500;
-    transition: all 0.2s;
+}
+
+#genai-input:focus ~ #genai-char-count {
+    color: rgba(100, 212, 255, 0.7);
+}
+
+.genai-input-area {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+}
+
+.genai-send-button {
+    padding: 12px 20px;
+    background: linear-gradient(135deg, rgba(100, 200, 255, 0.4) 0%, rgba(74, 170, 255, 0.3) 100%);
+    color: #e8f0ff;
+    border: 1.5px solid rgba(100, 212, 255, 0.4);
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     font-size: 0.95rem;
+    flex-shrink: 0;
+    box-shadow: 
+        0 8px 20px rgba(100, 212, 255, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    letter-spacing: 0.3px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
+    backdrop-filter: blur(10px);
 }
 
-#genai-send-btn:hover {
-    background: rgba(74, 144, 226, 0.5);
-    box-shadow: 0 0 15px rgba(74, 144, 226, 0.3);
+.genai-send-icon {
+    font-size: 1.1rem;
+    line-height: 1;
 }
 
-#genai-send-btn:active {
-    transform: scale(0.95);
+.genai-send-button:hover:not(:disabled) {
+    background: linear-gradient(135deg, rgba(100, 212, 255, 0.5) 0%, rgba(80, 180, 255, 0.4) 100%);
+    border-color: rgba(100, 212, 255, 0.6);
+    box-shadow: 
+        0 12px 30px rgba(100, 212, 255, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        0 0 30px rgba(100, 212, 255, 0.2);
+    transform: translateY(-2px);
 }
 
-#genai-send-btn:disabled {
+.genai-send-button:active:not(:disabled) {
+    transform: translateY(0) scale(0.98);
+    box-shadow: 0 2px 8px rgba(74, 144, 226, 0.2);
+}
+
+.genai-send-button:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 #genai-loading {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    padding: 8px;
-    color: #4a90e2;
+    gap: 10px;
+    padding: 12px;
+    color: #64d4ff;
     font-size: 0.9rem;
+    font-weight: 500;
+    animation: fadeInMessage 0.3s ease-out;
 }
 
 .genai-spinner {
-    width: 16px;
-    height: 16px;
-    border: 2px solid rgba(74, 144, 226, 0.2);
-    border-top-color: #4a90e2;
+    width: 18px;
+    height: 18px;
+    border: 2.5px solid rgba(100, 212, 255, 0.2);
+    border-top-color: #64d4ff;
     border-radius: 50%;
-    animation: spin 0.8s linear infinite;
+    animation: spinSmooth 0.8s linear infinite;
+    box-shadow: 0 0 10px rgba(100, 212, 255, 0.3);
 }
 
-@keyframes spin {
+@keyframes spinSmooth {
     to {
         transform: rotate(360deg);
     }
 }
 
-/* Scrollbar Styling for Chat History */
+/* Tips Section */
+.genai-tips {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    background: rgba(100, 212, 255, 0.12);
+    border: 1px solid rgba(100, 212, 255, 0.25);
+    border-radius: 8px;
+    color: rgba(100, 212, 255, 0.9);
+    font-size: 0.85rem;
+    animation: fadeInMessage 0.4s ease-out 0.2s both;
+    backdrop-filter: blur(8px);
+}
+
+.genai-tip-icon {
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+/* ========== Scrollbar Styling ========== */
 .genai-chat-history::-webkit-scrollbar {
-    width: 6px;
+    width: 8px;
 }
 
 .genai-chat-history::-webkit-scrollbar-track {
-    background: transparent;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
 }
 
 .genai-chat-history::-webkit-scrollbar-thumb {
-    background: rgba(74, 144, 226, 0.3);
-    border-radius: 3px;
+    background: linear-gradient(180deg, rgba(74, 144, 226, 0.4), rgba(100, 200, 255, 0.3));
+    border-radius: 4px;
+    border: 2px solid rgba(0, 0, 0, 0.2);
 }
 
 .genai-chat-history::-webkit-scrollbar-thumb:hover {
-    background: rgba(74, 144, 226, 0.5);
+    background: linear-gradient(180deg, rgba(74, 144, 226, 0.6), rgba(100, 200, 255, 0.5));
+    box-shadow: 0 0 10px rgba(74, 144, 226, 0.3);
+}
+
+/* ========== GenAI API Key Terminal Styles ========== */
+
+#genai-apikey-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    backdrop-filter: blur(10px);
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* Terminal Window */
+#genai-apikey-terminal {
+    background: #0d1117;
+    border: 2px solid #30a46c;
+    border-radius: 8px;
+    width: 100%;
+    max-width: 700px;
+    max-height: 85vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 60px rgba(16, 164, 108, 0.3), 
+                inset 0 1px 0 rgba(48, 164, 108, 0.3);
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Courier New', monospace;
+    animation: slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Terminal Title Bar */
+#terminal-titlebar {
+    background: linear-gradient(to right, #1c2128 0%, #161b22 100%);
+    border-bottom: 1px solid #30a46c;
+    padding: 10px 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 40px;
+}
+
+.terminal-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.terminal-btn {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.terminal-btn.close {
+    background: #ff5f57;
+}
+
+.terminal-btn.minimize {
+    background: #febc2e;
+}
+
+.terminal-btn.maximize {
+    background: #28c940;
+}
+
+.terminal-btn:hover {
+    transform: scale(1.2);
+}
+
+.terminal-title {
+    flex: 1;
+    color: #30a46c;
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-align: center;
+    user-select: none;
+}
+
+#close-apikey-btn {
+    background: none;
+    border: none;
+    color: #30a46c;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0 8px;
+    transition: all 0.2s;
+    margin-left: auto;
+}
+
+#close-apikey-btn:hover {
+    color: #79c0ff;
+    transform: scale(1.2);
+}
+
+/* Terminal Content Area */
+#genai-apikey-content {
+    flex: 1;
+    overflow-y: auto;
+    background: #0d1117;
+    padding: 15px 15px;
+    color: #30a46c;
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+/* Terminal Output */
+.terminal-output {
+    margin-bottom: 20px;
+}
+
+.terminal-line {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 6px;
+    word-break: break-word;
+}
+
+.terminal-prompt {
+    color: #30a46c;
+    font-weight: bold;
+    flex-shrink: 0;
+    min-width: 15px;
+}
+
+.terminal-prompt-inline {
+    color: #30a46c;
+    font-weight: bold;
+    margin-right: 4px;
+}
+
+.terminal-text {
+    color: #c9d1d9;
+    white-space: pre-wrap;
+}
+
+.terminal-text-dim {
+    color: #6e7681;
+}
+
+.terminal-text-warning {
+    color: #ff8a3a;
+    font-weight: bold;
+}
+
+.terminal-text-info {
+    color: #79c0ff;
+    font-weight: bold;
+}
+
+.terminal-status {
+    font-weight: bold;
+}
+
+.terminal-status.success {
+    color: #3fb950;
+}
+
+.terminal-status.error {
+    color: #f85149;
+}
+
+.terminal-link {
+    color: #58a6ff;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.terminal-link:hover {
+    color: #79c0ff;
+}
+
+/* Terminal Input Section */
+.terminal-input-section {
+    border-top: 1px solid #30a46c;
+    padding-top: 12px;
+}
+
+.terminal-label {
+    color: #c9d1d9;
+}
+
+.terminal-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(48, 164, 108, 0.1);
+    border: 1px solid #30a46c;
+    border-radius: 4px;
+    padding: 6px 10px;
+    margin-top: 8px;
+    margin-bottom: 12px;
+}
+
+#genai-apikey-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: #30a46c;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Courier New', monospace;
+    font-size: 0.95rem;
+    outline: none;
+}
+
+#genai-apikey-input::placeholder {
+    color: #6e7681;
+}
+
+#genai-apikey-input:focus {
+    color: #79c0ff;
+}
+
+.terminal-eye-btn {
+    background: none;
+    border: none;
+    color: #30a46c;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 2px 6px;
+    transition: all 0.2s;
+}
+
+.terminal-eye-btn:hover {
+    color: #79c0ff;
+    transform: scale(1.15);
+}
+
+/* Terminal Commands */
+.terminal-commands {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.terminal-cmd-btn {
+    background: rgba(48, 164, 108, 0.15);
+    border: 1px solid #30a46c;
+    border-radius: 4px;
+    color: #30a46c;
+    padding: 8px 14px;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Courier New', monospace;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.cmd-icon {
+    color: #79c0ff;
+}
+
+.terminal-cmd-btn:hover {
+    background: rgba(48, 164, 108, 0.25);
+    border-color: #79c0ff;
+    color: #79c0ff;
+    box-shadow: 0 0 10px rgba(48, 164, 108, 0.3);
+}
+
+.terminal-cmd-btn:active {
+    transform: scale(0.97);
+}
+
+.terminal-cmd-btn.validate-btn {
+    border-color: #79c0ff;
+    color: #79c0ff;
+}
+
+.terminal-cmd-btn.validate-btn:hover {
+    background: rgba(121, 192, 255, 0.15);
+    box-shadow: 0 0 10px rgba(121, 192, 255, 0.3);
+}
+
+.terminal-cmd-btn.save-btn {
+    border-color: #3fb950;
+    color: #3fb950;
+}
+
+.terminal-cmd-btn.save-btn:hover {
+    background: rgba(63, 185, 80, 0.15);
+    box-shadow: 0 0 10px rgba(63, 185, 80, 0.3);
+}
+
+.terminal-cmd-btn.help-btn {
+    border-color: #ff8a3a;
+    color: #ff8a3a;
+}
+
+.terminal-cmd-btn.help-btn:hover {
+    background: rgba(255, 138, 58, 0.15);
+    box-shadow: 0 0 10px rgba(255, 138, 58, 0.3);
+}
+
+.terminal-cmd-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Terminal Status Line */
+.terminal-status-line {
+    padding: 10px 12px;
+    border-radius: 4px;
+    border-left: 3px solid;
+    font-weight: 600;
+    animation: slideDown 0.3s ease-out;
+}
+
+.terminal-status-line.success {
+    background: rgba(63, 185, 80, 0.15);
+    border-color: #3fb950;
+    color: #3fb950;
+}
+
+.terminal-status-line.error {
+    background: rgba(248, 81, 73, 0.15);
+    border-color: #f85149;
+    color: #f85149;
+}
+
+.terminal-status-line.info {
+    background: rgba(121, 192, 255, 0.15);
+    border-color: #79c0ff;
+    color: #79c0ff;
+}
+
+.terminal-status-line.warning {
+    background: rgba(255, 138, 58, 0.15);
+    border-color: #ff8a3a;
+    color: #ff8a3a;
+}
+
+/* Terminal Help Section */
+.terminal-help-section {
+    border-top: 1px solid #30a46c;
+    padding-top: 12px;
+    margin-top: 12px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.terminal-help-section .terminal-line {
+    margin-bottom: 4px;
+    font-size: 0.85rem;
+}
+
+/* Scrollbar Styling for Terminal */
+#genai-apikey-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+#genai-apikey-content::-webkit-scrollbar-track {
+    background: rgba(48, 164, 108, 0.1);
+}
+
+#genai-apikey-content::-webkit-scrollbar-thumb {
+    background: #30a46c;
+    border-radius: 4px;
+}
+
+#genai-apikey-content::-webkit-scrollbar-thumb:hover {
+    background: #79c0ff;
+}
+
+/* Animations */
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ========== Responsive Design ========== */
+@media (max-width: 480px) {
+    #genai-apikey-modal {
+        max-width: 95%;
+        border-radius: 16px;
+    }
+    
+    #genai-apikey-header {
+        padding: 16px;
+    }
+    
+    #genai-apikey-title {
+        font-size: 1.2rem;
+    }
+    
+    #genai-apikey-content {
+        padding: 16px;
+    }
+    
+    .apikey-actions {
+        flex-direction: column;
+    }
+}
+@media (max-width: 768px) {
+    #genai-modal {
+        max-width: 95%;
+        max-height: 75vh;
+        border-radius: 16px;
+    }
+    
+    .genai-message {
+        max-width: 90%;
+        font-size: 0.9rem;
+    }
+    
+    #genai-title {
+        font-size: 1.2rem;
+    }
+    
+    #genai-input,
+    #genai-send-btn {
+        padding: 10px 12px;
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 480px) {
+    #genai-modal {
+        max-width: 100%;
+        max-height: 85vh;
+        border-radius: 12px;
+    }
+    
+    #genai-header {
+        padding: 14px 16px;
+    }
+    
+    .genai-message {
+        max-width: 88%;
+        padding: 10px 12px;
+        font-size: 0.85rem;
+    }
+    
+    #genai-title {
+        font-size: 1.1rem;
+    }
 }
