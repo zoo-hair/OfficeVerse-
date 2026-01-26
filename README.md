@@ -1,6 +1,6 @@
 <div align="center">
 
-![OfficeVerse Hero Banner](/c:/Users/Zuhair/Desktop/ov/assets/branding/hero.png)
+![OfficeVerse Hero Banner](assets/branding/hero.png)
 
 # 🏢 OfficeVerse
 

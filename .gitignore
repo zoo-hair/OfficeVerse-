@@ -7,6 +7,10 @@ Thumbs.db
 # IDEs and Editors
 .idea/
 .vscode/
+**/.idea/
+**/.vscode/
+.vs/
+**/.vs/
 *.swp
 *.swo
 
