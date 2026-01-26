@@ -1,10 +1,13 @@
 import * as Phaser from 'https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.esm.js';
 import { connectMovement, sendMovement } from '../../network/movementSocket.js';
 import { initChat } from '../../network/ChatModule.js';
-import { sendPromptToGenAI } from '../../network/GenAIModule.js';
 import ZoneManager from '../map/ZoneManager.js';
 import MiniMap from '../ui/MiniMap.js';
 import TodoManager from '../ui/TodoManager.js';
+import TodoUI from '../ui/TodoUI.js';
+import BossPanelUI from '../ui/BossPanelUI.js';
+import GenAIUI from '../ui/GenAIUI.js';
+import ExecutiveUI from '../ui/ExecutiveUI.js';
 
 export default class OfficeScene extends Phaser.Scene {
     constructor() {
@@ -151,10 +154,11 @@ export default class OfficeScene extends Phaser.Scene {
         this.eKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
         this.fKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
 
-        this.setupTodoListeners();
-        this.setupBossListeners();
-        this.setupExecutiveListeners();
-        this.setupGenAIListeners();
+        /* ---------------- UI COMPONENTS ---------------- */
+        this.todoUI = new TodoUI(this);
+        this.bossPanelUI = new BossPanelUI(this);
+        this.executiveUI = new ExecutiveUI(this);
+        this.genAIUI = new GenAIUI(this);
     }
 
     createAnimations() {
@@ -357,7 +361,7 @@ export default class OfficeScene extends Phaser.Scene {
             }
         } else if (this.currentZone) {
             this.hideZonePrompt();
-            if (this.activeDesk) this.closeTodo();
+            if (this.activeDesk && this.todoUI) this.todoUI.closeTodo();
         }
     }
 
@@ -383,24 +387,24 @@ export default class OfficeScene extends Phaser.Scene {
     handleZoneInteraction() {
         if (!this.currentZone) return;
         switch (this.currentZone) {
-            case 'lobby': this.showFeaturesPopup(); break;
+            case 'lobby': this.executiveUI.showFeaturesPopup(); break;
             case 'meetingRoom': window.open('https://meet.google.com/new', '_blank'); break;
-            case 'genAI': this.openGenAIPanel(); break;
+            case 'genAI': this.genAIUI.openGenAIPanel(); break;
             case 'gaming': window.open('https://poki.com/', '_blank'); break;
             case 'exit': if (confirm('Leave office?')) window.location.reload(); break;
             case 'coffee': this.grabCoffee(); break;
             case 'zenRoom': this.toggleZenMode(); break;
             case 'bossRoom':
                 if (this.playerRole === 'boss') {
-                    this.openBossPanel();
+                    this.bossPanelUI.openBossPanel();
                 } else {
                     this.showPopup('Access Denied: Only the Boss can enter! 🚫');
                 }
                 break;
-            case 'executive': this.openExecutivePanel(); break;
+            case 'executive': this.executiveUI.openExecutivePanel(); break;
             default:
                 if (this.currentZone.match(/^d[1-6]$/)) {
-                    this.openTodo(this.currentZone);
+                    this.todoUI.openTodo(this.currentZone);
                 }
                 break;
         }
@@ -426,424 +430,5 @@ export default class OfficeScene extends Phaser.Scene {
         container.add([bg, text]);
         this.activePopup = container;
         this.tweens.add({ targets: container, alpha: { from: 1, to: 0 }, delay: 2500, duration: 500, onComplete: () => { container.destroy(); if (this.activePopup === container) this.activePopup = null; } });
-    }
-
-    /* ---------------- TO-DO LIST ---------------- */
-    setupTodoListeners() {
-        const closeBtn = document.getElementById('close-todo-btn');
-        if (closeBtn) closeBtn.onclick = () => this.closeTodo();
-        const addBtn = document.getElementById('add-todo-btn');
-        if (addBtn) addBtn.onclick = () => this.addTodo();
-        const input = document.getElementById('todo-input');
-        if (input) input.onkeydown = (e) => { if (e.key === 'Enter') this.addTodo(); };
-    }
-
-    openTodo(deskId) {
-        this.activeDesk = deskId;
-        const title = document.getElementById('todo-title');
-        if (title) title.textContent = `Desk ${deskId.toUpperCase()} - To-Do List`;
-        const overlay = document.getElementById('todo-list-overlay');
-        if (overlay) overlay.style.display = 'flex';
-        this.renderTodos();
-    }
-
-    closeTodo() {
-        this.activeDesk = null;
-        const overlay = document.getElementById('todo-list-overlay');
-        if (overlay) overlay.style.display = 'none';
-        const input = document.getElementById('todo-input');
-        if (input) input.value = '';
-    }
-
-    addTodo() {
-        const input = document.getElementById('todo-input');
-        if (!input) return;
-        const text = input.value.trim();
-        if (text && this.activeDesk) {
-            this.todoManager.addTask(this.activeDesk, text);
-            input.value = '';
-            this.renderTodos();
-        }
-    }
-
-    renderTodos() {
-        if (!this.activeDesk) return;
-        const list = document.getElementById('todo-items');
-        if (!list) return;
-        list.innerHTML = '';
-        const tasks = this.todoManager.getTasks(this.activeDesk);
-        tasks.forEach(task => {
-            const li = document.createElement('li');
-            li.className = `todo-item ${task.completed ? 'completed' : ''}`;
-            li.innerHTML = `
-                <input type="checkbox" ${task.completed ? 'checked' : ''}>
-                <span>${task.text}</span>
-                <button class="delete-task-btn" ${task.immutable ? 'style="display:none"' : ''}>&times;</button>
-            `;
-            li.querySelector('input').onclick = () => {
-                this.todoManager.toggleTask(this.activeDesk, task.id);
-                this.renderTodos();
-            };
-            if (!task.immutable) {
-                const deleteBtn = li.querySelector('.delete-task-btn');
-                if (deleteBtn) deleteBtn.onclick = () => {
-                    this.todoManager.deleteTask(this.activeDesk, task.id);
-                    this.renderTodos();
-                };
-            }
-            list.appendChild(li);
-        });
-    }
-
-    /* ---------------- BOSS CONTROL PANEL ---------------- */
-    setupBossListeners() {
-        const closeBtn = document.getElementById('close-boss-btn');
-        if (closeBtn) closeBtn.onclick = () => this.closeBossPanel();
-        const assignBtn = document.getElementById('assign-boss-task-btn');
-        if (assignBtn) assignBtn.onclick = () => this.assignBossTask();
-        const input = document.getElementById('boss-task-input');
-        if (input) input.onkeydown = (e) => { if (e.key === 'Enter') this.assignBossTask(); };
-
-        const deskBoxes = document.querySelectorAll('.desk-box');
-        deskBoxes.forEach(box => {
-            box.onclick = () => {
-                deskBoxes.forEach(b => b.classList.remove('active'));
-                box.classList.add('active');
-                this.renderDeskDetail(box.dataset.desk);
-            };
-        });
-
-        window.handleBossTaskReceived = (text) => {
-            if (this.todoManager) {
-                this.todoManager.assignGlobalTask(text);
-                this.showPopup(`THE BOSS HAS ASSIGNED A NEW TASK! 💡`);
-                this.updateDeskNotifications();
-                if (this.activeDesk) this.renderTodos();
-            }
-        };
-    }
-
-    openBossPanel() {
-        const overlay = document.getElementById('boss-panel-overlay');
-        if (overlay) {
-            overlay.style.display = 'flex';
-            const list = document.getElementById('boss-detail-list');
-            if (list) list.innerHTML = '';
-            const title = document.getElementById('detail-title');
-            if (title) title.textContent = 'Select a desk to view tasks';
-            document.querySelectorAll('.desk-box').forEach(b => b.classList.remove('active'));
-        }
-    }
-
-    renderDeskDetail(deskId) {
-        const list = document.getElementById('boss-detail-list');
-        const title = document.getElementById('detail-title');
-        if (!list || !title) return;
-        title.textContent = `Tasks for Desk ${deskId.toUpperCase()}`;
-        list.innerHTML = '';
-        const tasks = this.todoManager.getTasks(deskId);
-        if (tasks.length === 0) {
-            list.innerHTML = '<li style="color:#666; font-style:italic">No active tasks found</li>';
-            return;
-        }
-        tasks.forEach(t => {
-            const li = document.createElement('li');
-            li.className = `boss-read-only-item ${t.completed ? 'done' : ''}`;
-            li.innerHTML = `<span class="status-dot ${t.completed ? 'done' : ''}"></span>${t.text}`;
-            list.appendChild(li);
-        });
-    }
-
-    closeBossPanel() {
-        const overlay = document.getElementById('boss-panel-overlay');
-        if (overlay) overlay.style.display = 'none';
-        const input = document.getElementById('boss-task-input');
-        if (input) input.value = '';
-    }
-
-    assignBossTask() {
-        if (this.playerRole !== 'boss') return;
-        const input = document.getElementById('boss-task-input');
-        if (!input) return;
-        const text = input.value.trim();
-        if (text) {
-            this.todoManager.assignGlobalTask(text);
-            if (window.sendGlobalMessage) window.sendGlobalMessage(`BOSS_TASK:${text}`);
-            this.showPopup('Global Task Assigned to all Desks! 📢');
-            this.closeBossPanel();
-            this.updateDeskNotifications();
-        }
-    }
-
-    updateDeskNotifications() {
-        if (this.deskNotifications) this.deskNotifications.forEach(n => n.destroy());
-        this.deskNotifications = [];
-        const desks = [
-            { id: 'd1', x: 460, y: 100 }, { id: 'd2', x: 580, y: 100 }, { id: 'd3', x: 720, y: 95 },
-            { id: 'd4', x: 460, y: 190 }, { id: 'd5', x: 590, y: 195 }, { id: 'd6', x: 715, y: 190 }
-        ];
-        desks.forEach(d => {
-            const hasBossTask = this.todoManager.getTasks(d.id).some(t => t.immutable && !t.completed);
-            if (hasBossTask) {
-                const bulb = this.add.text(d.x, d.y - 30, '💡', { fontSize: '24px' }).setOrigin(0.5);
-                bulb.setDepth(2000);
-                this.tweens.add({ targets: bulb, y: bulb.y - 5, duration: 1000, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
-                this.deskNotifications.push(bulb);
-            }
-        });
-    }
-
-    /* ---------------- EXECUTIVE PANEL / BONUS ---------------- */
-    setupExecutiveListeners() {
-        const closeBtn = document.getElementById('close-executive-btn');
-        if (closeBtn) closeBtn.onclick = () => this.closeExecutivePanel();
-
-        const triggerBtn = document.getElementById('trigger-bonus-btn');
-        if (triggerBtn) triggerBtn.onclick = () => this.triggerBonus();
-
-        window.handleBonusRainReceived = () => this.handleBonusRain();
-    }
-
-    openExecutivePanel() {
-        const overlay = document.getElementById('executive-panel-overlay');
-        if (overlay) overlay.style.display = 'flex';
-    }
-
-    closeExecutivePanel() {
-        const overlay = document.getElementById('executive-panel-overlay');
-        if (overlay) overlay.style.display = 'none';
-    }
-
-    triggerBonus() {
-        if (window.sendGlobalMessage) {
-            window.sendGlobalMessage('BONUS_RAIN');
-            this.showPopup('Office-wide Bonus Triggered! 🤑');
-            this.closeExecutivePanel();
-            this.handleBonusRain();
-        }
-    }
-
-    handleBonusRain() {
-        const tint = document.createElement('div');
-        tint.className = 'gold-tint active';
-        document.body.appendChild(tint);
-
-        const emojis = ['💰', '💵', '💎', '🚀', '🤑'];
-        for (let i = 0; i < 40; i++) {
-            setTimeout(() => {
-                const money = document.createElement('div');
-                money.className = 'bonus-money';
-                money.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-                money.style.left = Math.random() * 100 + 'vw';
-                money.style.animationDuration = (2 + Math.random() * 2) + 's';
-                document.body.appendChild(money);
-                setTimeout(() => money.remove(), 4000);
-            }, i * 100);
-        }
-
-        setTimeout(() => {
-            tint.classList.remove('active');
-            setTimeout(() => tint.remove(), 1000);
-        }, 5000);
-    }
-
-    /* ---------------- GENAI PANEL / MISTRAL AI ASSISTANT ---------------- */
-    setupGenAIListeners() {
-        // Initialize API Key Module for GenAI
-        import('../../network/APIKeyModule.js').then(module => {
-            const { initializeAPIKeyManagement } = module;
-            initializeAPIKeyManagement();
-        });
-
-        const closeBtn = document.getElementById('close-genai-btn');
-        if (closeBtn) closeBtn.onclick = () => this.closeGenAIPanel();
-
-        const sendBtn = document.getElementById('genai-send-btn');
-        if (sendBtn) sendBtn.onclick = () => this.sendGenAIPrompt();
-
-        const input = document.getElementById('genai-input');
-        if (input) {
-            // Prevent Phaser from capturing keyboard events when input is focused
-            input.addEventListener('focus', () => {
-                this.input.keyboard.enabled = false;
-            });
-
-            input.addEventListener('blur', () => {
-                this.input.keyboard.enabled = true;
-            });
-
-            // Character counter
-            const charCount = document.getElementById('genai-char-count');
-            input.addEventListener('input', (e) => {
-                if (charCount) {
-                    charCount.textContent = `${e.target.value.length}/500`;
-                    // Visual feedback when near limit
-                    if (e.target.value.length > 450) {
-                        charCount.style.color = 'rgba(255, 150, 100, 0.8)';
-                    } else {
-                        charCount.style.color = 'rgba(200, 200, 200, 0.5)';
-                    }
-                }
-            });
-
-            // Send on Enter
-            input.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    this.sendGenAIPrompt();
-                }
-            });
-        }
-
-        // Hide tips after first interaction
-        const tipsEl = document.getElementById('genai-tips');
-        if (tipsEl) {
-            const hideAfterFirstMessage = () => {
-                tipsEl.style.display = 'none';
-                if (input) input.removeEventListener('focus', hideAfterFirstMessage);
-            };
-            if (input) input.addEventListener('focus', hideAfterFirstMessage);
-        }
-    }
-
-    openGenAIPanel() {
-        // Import here to avoid circular dependencies
-        import('../../network/APIKeyModule.js').then(module => {
-            const { showAPIKeyModal, isGenAIConfigured } = module;
-            
-            isGenAIConfigured().then(configured => {
-                if (!configured) {
-                    // Show API key configuration modal if not configured
-                    showAPIKeyModal();
-                } else {
-                    // Show GenAI panel if API is configured
-                    const overlay = document.getElementById('genai-panel-overlay');
-                    if (overlay) {
-                        overlay.style.display = 'flex';
-                        const input = document.getElementById('genai-input');
-                        if (input) input.focus();
-                    }
-                    // Clear previous chat history when opening panel
-                    this.clearGenAIHistory();
-                }
-            });
-        });
-    }
-
-    closeGenAIPanel() {
-        const overlay = document.getElementById('genai-panel-overlay');
-        if (overlay) overlay.style.display = 'none';
-        const input = document.getElementById('genai-input');
-        if (input) input.value = '';
-    }
-
-    async sendGenAIPrompt() {
-        const input = document.getElementById('genai-input');
-        if (!input || !input.value.trim()) return;
-
-        const prompt = input.value.trim();
-        input.value = '';
-
-        // Add user message to chat history
-        this.addGenAIMessage(prompt, 'user');
-
-        // Show loading state
-        const loadingDiv = document.getElementById('genai-loading');
-        const sendBtn = document.getElementById('genai-send-btn');
-        if (loadingDiv) loadingDiv.style.display = 'flex';
-        if (sendBtn) sendBtn.disabled = true;
-
-        try {
-            // Send prompt to backend server
-            const response = await sendPromptToGenAI(prompt, this.roomId);
-            this.addGenAIMessage(response, 'ai');
-        } catch (error) {
-            console.error('GenAI Error:', error);
-            const errorMsg = `❌ Error: ${error.message}`;
-            this.addGenAIMessage(errorMsg, 'system');
-        } finally {
-            if (loadingDiv) loadingDiv.style.display = 'none';
-            if (sendBtn) sendBtn.disabled = false;
-            const inputElement = document.getElementById('genai-input');
-            if (inputElement) inputElement.focus();
-        }
-    }
-
-    addGenAIMessage(text, sender = 'system') {
-        const chatHistory = document.getElementById('genai-chat-history');
-        if (!chatHistory) return;
-
-        const messageEl = document.createElement('div');
-        messageEl.className = `genai-message ${sender}`;
-        messageEl.textContent = text;
-        chatHistory.appendChild(messageEl);
-
-        // Auto-scroll to bottom
-        chatHistory.scrollTop = chatHistory.scrollHeight;
-    }
-
-    clearGenAIHistory() {
-        const chatHistory = document.getElementById('genai-chat-history');
-        if (chatHistory) {
-            chatHistory.innerHTML = '<div class="genai-message system"><strong>Welcome!</strong> I\'m powered by Mistral AI. Ask me questions, get advice, or brainstorm ideas!</div>';
-        }
-    }
-
-    showFeaturesPopup() {
-        setTimeout(() => {
-            const overlay = document.getElementById('features-popup-overlay');
-            if (!overlay) {
-                console.error('Features popup overlay not found in DOM');
-                return;
-            }
-            overlay.style.display = 'flex';
-
-            // Setup close button
-            const closeBtn = document.getElementById('features-popup-close');
-            if (closeBtn) {
-                closeBtn.onclick = (e) => {
-                    e.stopPropagation();
-                    overlay.style.display = 'none';
-                };
-            }
-
-            // Setup feature buttons
-            const techBlogBtn = document.getElementById('feature-techblog');
-            if (techBlogBtn) {
-                techBlogBtn.onclick = (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    window.open('https://technewsworld.com/', '_blank');
-                    overlay.style.display = 'none';
-                };
-            }
-
-            const coming1Btn = document.getElementById('feature-coming1');
-            if (coming1Btn) {
-                coming1Btn.onclick = (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    alert('Coming Soon! 🚀');
-                    overlay.style.display = 'none';
-                };
-            }
-
-            const coming2Btn = document.getElementById('feature-coming2');
-            if (coming2Btn) {
-                coming2Btn.onclick = (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    alert('Coming Soon! 🚀');
-                    overlay.style.display = 'none';
-                };
-            }
-
-            // Close on outside click
-            overlay.onclick = (e) => {
-                if (e.target === overlay) {
-                    overlay.style.display = 'none';
-                }
-            };
-        }, 100);
     }
 }
