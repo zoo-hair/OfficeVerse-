@@ -126,6 +126,22 @@ This frontend connects to the OfficeVerse backend API:
 
 See backend repository for setup instructions.
 
+## ❓ Troubleshooting
+
+### Port 5173 Already in Use
+
+If you see an error like `Error: listen EADDRINUSE: address already in use :::5173`, it means the port is occupied. You can either:
+
+1.  Kill the process using the port.
+2.  Run on a different port:
+    ```bash
+    npm run dev -- --port 3000
+    ```
+
+### WebSocket Connection Failed
+
+Ensure the backend server is running on `localhost:8080`. Check the browser console (F12) for connection errors.
+
 ## 📝 License
 
 MIT
