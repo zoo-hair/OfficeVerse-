@@ -37,6 +37,15 @@ export default class TodoManager {
         }
     }
 
+    editTask(deskId, taskId, newText) {
+        if (!this.todos[deskId] || !newText.trim()) return;
+        const task = this.todos[deskId].find(t => t.id === taskId);
+        if (task) {
+            task.text = newText.trim();
+            this.save();
+        }
+    }
+
     deleteTask(deskId, taskId) {
         if (!this.todos[deskId]) return;
         const task = this.todos[deskId].find(t => t.id === taskId);
@@ -45,6 +54,12 @@ export default class TodoManager {
             return;
         }
         this.todos[deskId] = this.todos[deskId].filter(t => t.id !== taskId);
+        this.save();
+    }
+
+    clearCompletedTasks(deskId) {
+        if (!this.todos[deskId]) return;
+        this.todos[deskId] = this.todos[deskId].filter(t => !t.completed || t.immutable);
         this.save();
     }
 

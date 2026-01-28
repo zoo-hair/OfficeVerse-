@@ -19,64 +19,88 @@
     <!-- Login Screen -->
     <div id="login-screen" style="display: none;">
         <div id="login-form">
-            <h1>Office Verse</h1>
+            <div class="login-badge">OfficeVerse</div>
+            
+            <div class="login-card-inner">
+                <div class="login-tabs">
+                    <button class="login-tab active" data-role="boss">Boss</button>
+                    <button class="login-tab" data-role="employee">Employee</button>
+                </div>
 
-            <div class="login-tabs">
-                <button class="login-tab active" data-role="boss">Boss (Create Office)</button>
-                <button class="login-tab" data-role="employee">Employee (Join Office)</button>
-            </div>
-
-            <!-- Boss Form -->
-            <div id="boss-form" class="role-form active">
-                <label class="login-label">Enter Your Name:</label>
-                <input type="text" id="boss-name" class="login-input" maxlength="12" required>
-
-                <label class="login-label">Enter Office Name:</label>
-                <input type="text" id="office-name" class="login-input" maxlength="20" placeholder="E.g. Sales Team">
-
-                <button id="create-office-btn" class="login-btn">Create Office</button>
-            </div>
-
-            <!-- Employee Form -->
-            <div id="employee-form" class="role-form">
-                <label class="login-label">Enter Your Name:</label>
-                <input type="text" id="employee-name" class="login-input" maxlength="12" required>
-
-                <label class="login-label">Enter Office Code:</label>
-                <input type="text" id="join-code" class="login-input" maxlength="6" style="text-transform: uppercase;"
-                    placeholder="6-digit code">
-
-                <button id="join-office-btn" class="login-btn">Join Office</button>
-            </div>
-
-            <!-- Character Selection with Animated Canvas -->
-            <div id="character-selection">
-                <h3>Choose Character</h3>
-                <div id="character-options">
-                    <div class="character-option selected" data-character="owlet">
-                        <canvas class="character-canvas" id="canvas-owlet" width="64" height="64"></canvas>
-                        <span>Owlet</span>
+                <!-- Boss Form -->
+                <div id="boss-form" class="role-form active">
+                    <div class="input-group">
+                        <label class="login-label">Enter Your Name</label>
+                        <input type="text" id="boss-name" class="login-input" maxlength="12" placeholder="e.g. Satoshi" required>
                     </div>
-                    <div class="character-option" data-character="dude">
-                        <canvas class="character-canvas" id="canvas-dude" width="64" height="64"></canvas>
-                        <span>Dude</span>
+
+                    <div class="input-group">
+                        <label class="login-label">Office Name</label>
+                        <input type="text" id="office-name" class="login-input" maxlength="20" placeholder="e.g. The Moon Base">
                     </div>
-                    <div class="character-option" data-character="pink">
-                        <canvas class="character-canvas" id="canvas-pink" width="64" height="64"></canvas>
-                        <span>Pink</span>
+
+                    <button id="create-office-btn" class="login-btn">Create Office</button>
+                </div>
+
+                <!-- Employee Form -->
+                <div id="employee-form" class="role-form">
+                    <div class="input-group">
+                        <label class="login-label">Enter Your Name</label>
+                        <input type="text" id="employee-name" class="login-input" maxlength="12" placeholder="e.g. Vitalik" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label class="login-label">Office Code</label>
+                        <input type="text" id="join-code" class="login-input" maxlength="6" style="text-transform: uppercase;"
+                            placeholder="6-DIGIT CODE">
+                    </div>
+
+                    <button id="join-office-btn" class="login-btn">Join Office</button>
+                </div>
+            </div>
+
+            <div class="login-card-inner character-selection-card">
+                <!-- Character Selection with Animated Canvas -->
+                <div id="character-selection">
+                    <h3 class="selection-title">Choose Your Character</h3>
+                    <div id="character-options">
+                        <div class="character-option selected" data-character="owlet">
+                            <div class="char-canvas-wrapper">
+                                <canvas class="character-canvas" id="canvas-owlet" width="64" height="64"></canvas>
+                            </div>
+                            <span>Owlet</span>
+                        </div>
+                        <div class="character-option" data-character="dude">
+                            <div class="char-canvas-wrapper">
+                                <canvas class="character-canvas" id="canvas-dude" width="64" height="64"></canvas>
+                            </div>
+                            <span>Dude</span>
+                        </div>
+                        <div class="character-option" data-character="pink">
+                            <div class="char-canvas-wrapper">
+                                <canvas class="character-canvas" id="canvas-pink" width="64" height="64"></canvas>
+                            </div>
+                            <span>Pink</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Skin Selection -->
+                <div id="skin-selection">
+                    <label class="login-label center">Select Your Aura</label>
+                    <div class="skin-options">
+                        <div class="skin-option selected" style="background-color: #ffffff;" data-color="0xffffff"></div>
+                        <div class="skin-option" style="background-color: #ff5555;" data-color="0xff5555"></div>
+                        <div class="skin-option" style="background-color: #55ff55;" data-color="0x55ff55"></div>
+                        <div class="skin-option" style="background-color: #5555ff;" data-color="0x5555ff"></div>
                     </div>
                 </div>
             </div>
 
-            <!-- Skin Selection -->
-            <div id="skin-selection">
-                <label class="login-label">Select Your Color:</label>
-                <div class="skin-options">
-                    <div class="skin-option selected" style="background-color: #ffffff;" data-color="0xffffff"></div>
-                    <div class="skin-option" style="background-color: #ff5555;" data-color="0xff5555"></div>
-                    <div class="skin-option" style="background-color: #55ff55;" data-color="0x55ff55"></div>
-                    <div class="skin-option" style="background-color: #5555ff;" data-color="0x5555ff"></div>
-                </div>
+            <!-- Login Error Message -->
+            <div id="login-error" class="login-error" style="display: none;">
+                <span class="error-icon">⚠️</span>
+                <span class="error-message"></span>
             </div>
         </div>
     </div>
@@ -85,7 +109,16 @@
     <div id="room-info-ui" style="display: none;">
         <div class="room-info-card">
             <span id="room-display-name">Office: Loading...</span>
-            <span id="room-display-code">Code: ------</span>
+            <div class="code-container">
+                <span id="room-display-code">Code: ------</span>
+                <button id="copy-code-btn" class="copy-btn" title="Copy code to clipboard">
+                    <svg class="copy-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                        <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                    </svg>
+                    <span>Copy</span>
+                </button>
+            </div>
         </div>
     </div>
 
@@ -129,16 +162,38 @@
         <div id="todo-modal">
             <div id="todo-header">
                 <h2 id="todo-title">Desk d1 - To-Do List</h2>
-                <button id="close-todo-btn">&times;</button>
+                <div class="todo-header-actions">
+                    <button id="clear-todo-btn" class="clear-btn" title="Clear completed tasks">🗑️ Clear</button>
+                    <button id="close-todo-btn">&times;</button>
+                </div>
+            </div>
+            <div id="todo-stats" class="todo-stats">
+                <div class="stat-item">
+                    <span class="stat-value" id="stat-total">0</span>
+                    <span class="stat-label">Total</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="stat-completed">0</span>
+                    <span class="stat-label">Done</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="stat-progress">0%</span>
+                    <span class="stat-label">Progress</span>
+                </div>
             </div>
             <div id="todo-list-container">
+                <div id="todo-empty-state" class="todo-empty-state" style="display: none;">
+                    <div class="empty-icon">📝</div>
+                    <p class="empty-title">No tasks yet!</p>
+                    <small class="empty-subtitle">Add your first task to get started</small>
+                </div>
                 <ul id="todo-items">
                     <!-- Items populated via JS -->
                 </ul>
             </div>
-            <div id="todo-input-area">
-                <input type="text" id="todo-input" placeholder="Add a new task..." maxlength="50">
-                <button id="add-todo-btn">Add</button>
+            <div id="todo-footer">
+                <input type="text" id="todo-input" placeholder="✨ Add a new target..." maxlength="60">
+                <button id="add-todo-btn">Add Task</button>
             </div>
         </div>
     </div>
@@ -399,6 +454,61 @@
             </div>
         </div>
     </div>
+
+    <!-- Keyboard Shortcuts Help -->
+    <div id="shortcuts-overlay" class="shortcuts-overlay" style="display: none;">
+        <div class="shortcuts-modal">
+            <div class="shortcuts-header">
+                <h2>⌨️ Keyboard Shortcuts</h2>
+                <button id="close-shortcuts-btn" class="close-btn" title="Close">&times;</button>
+            </div>
+            <div class="shortcuts-content">
+                <div class="shortcut-section">
+                    <h3>🕹️ Game Controls</h3>
+                    <div class="shortcut-item">
+                        <kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd>
+                        <span>Move character around the office</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>
+                        <span>Alternative movement keys</span>
+                    </div>
+                </div>
+                
+                <div class="shortcut-section">
+                    <h3>💬 Communication</h3>
+                    <div class="shortcut-item">
+                        <kbd>E</kbd>
+                        <span>Talk to players / Open private chat</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>Enter</kbd>
+                        <span>Send chat message</span>
+                    </div>
+                </div>
+                
+                <div class="shortcut-section">
+                    <h3>🛠️ Interactions</h3>
+                    <div class="shortcut-item">
+                        <kbd>F</kbd>
+                        <span>Interact with objects (Desks, Coffee, AI)</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>Esc</kbd>
+                        <span>Close any open panel or modal</span>
+                    </div>
+                </div>
+            </div>
+            <div class="shortcuts-footer">
+                <span>Press <strong>?</strong> to show this help anytime</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Button (floating) -->
+    <button id="help-button" class="help-button" title="Keyboard Shortcuts (?)">
+        <span>?</span>
+    </button>
 
     <div id="game-container"></div>
 </body>

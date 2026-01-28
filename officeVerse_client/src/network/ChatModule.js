@@ -131,8 +131,10 @@ export function initChat(playerId, playerName, roomId, roomDisplayCode) {
 
     const createBubble = (historyDiv, text, type, senderName) => {
         let html = '';
+        const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
         if (type === 'system') {
-            html = `<div class="msg-bubble system">${text}</div>`;
+            html = `<div class="msg-bubble system">${text} <span class="msg-timestamp" style="display:inline; margin-left:5px; opacity:0.6; font-size:0.8em">(${timestamp})</span></div>`;
         } else {
             const alignClass = (type === 'sent') ? 'sent' : 'received';
             // Safe encoding for text
@@ -140,7 +142,8 @@ export function initChat(playerId, playerName, roomId, roomDisplayCode) {
             html = `
                 <div class="msg-bubble ${alignClass}">
                     <span class="msg-sender">${senderName}</span>
-                    ${safeText}
+                    <span class="msg-text">${safeText}</span>
+                    <span class="msg-timestamp">${timestamp}</span>
                 </div>
             `;
         }

@@ -8,6 +8,41 @@ export default class LoginUI {
         this.confirmedPlayerId = null;
         this.isRunning = true;
         this.animations = [];
+        this.errorTimeout = null;
+    }
+
+    showError(message) {
+        const errorDiv = document.getElementById('login-error');
+        const errorMsg = errorDiv.querySelector('.error-message');
+        if (!errorDiv || !errorMsg) return;
+
+        errorMsg.textContent = message;
+        errorDiv.style.display = 'flex';
+
+        if (this.errorTimeout) clearTimeout(this.errorTimeout);
+        this.errorTimeout = setTimeout(() => {
+            errorDiv.style.display = 'none';
+        }, 5000);
+    }
+
+    hideError() {
+        const errorDiv = document.getElementById('login-error');
+        if (errorDiv) errorDiv.style.display = 'none';
+    }
+
+    validateInput(id, minLength = 1) {
+        const input = document.getElementById(id);
+        if (!input) return false;
+        
+        const val = input.value.trim();
+        if (val.length < minLength) {
+            input.classList.add('error');
+            return false;
+        } else {
+            input.classList.remove('error');
+            input.classList.add('success');
+            return true;
+        }
     }
 
     init() {
@@ -82,7 +117,7 @@ export default class LoginUI {
 
         this.roomSocket.onerror = (err) => {
             console.error('Room Socket Error:', err);
-            alert('Failed to connect to the game server. Please ensure the backend is running at localhost:8080');
+            this.showError('Failed to connect to the game server. Please ensure the backend is running at localhost:8080');
             if (createBtn) createBtn.textContent = 'Connection Error';
             if (joinBtn) joinBtn.textContent = 'Connection Error';
         };
@@ -128,7 +163,7 @@ export default class LoginUI {
 
                 this.roomSocket.close();
             } else if (response.type === 'error') {
-                alert('Error: ' + response.data.message);
+                this.showError('Error: ' + response.data.message);
                 if (createBtn) {
                     createBtn.disabled = false;
                     createBtn.textContent = 'Create Office';
@@ -143,16 +178,20 @@ export default class LoginUI {
     }
 
     handleCreateOffice(createBtn) {
-        const name = document.getElementById('boss-name').value.trim();
-        const officeName = document.getElementById('office-name').value.trim();
+        this.hideError();
+        const nameValid = this.validateInput('boss-name', 2);
+        const officeValid = this.validateInput('office-name', 3);
 
-        if (!name || !officeName) {
-            alert('Please enter your name and an office name');
+        if (!nameValid || !officeValid) {
+            this.showError('Please enter a valid Name (min 2 chars) and Office Name (min 3 chars)');
             return;
         }
 
+        const name = document.getElementById('boss-name').value.trim();
+        const officeName = document.getElementById('office-name').value.trim();
+
         if (this.roomSocket.readyState !== WebSocket.OPEN) {
-            alert('Connection lost. Please refresh the page.');
+            this.showError('Connection lost. Please refresh the page.');
             return;
         }
 
@@ -171,16 +210,20 @@ export default class LoginUI {
     }
 
     handleJoinOffice(joinBtn) {
-        const name = document.getElementById('employee-name').value.trim();
-        const code = document.getElementById('join-code').value.trim().toUpperCase();
+        this.hideError();
+        const nameValid = this.validateInput('employee-name', 2);
+        const codeValid = this.validateInput('join-code', 6);
 
-        if (!name || !code) {
-            alert('Please enter your name and the 6-digit office code');
+        if (!nameValid || !codeValid) {
+            this.showError('Please enter your name and the 6-digit office code');
             return;
         }
 
+        const name = document.getElementById('employee-name').value.trim();
+        const code = document.getElementById('join-code').value.trim().toUpperCase();
+
         if (this.roomSocket.readyState !== WebSocket.OPEN) {
-            alert('Connection lost. Please refresh the page.');
+            this.showError('Connection lost. Please refresh the page.');
             return;
         }
 

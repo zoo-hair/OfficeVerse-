@@ -69,6 +69,29 @@ export default class OfficeScene extends Phaser.Scene {
             roomInfo.style.display = 'block';
             document.getElementById('room-display-name').textContent = `Office: ${this.roomName}`;
             document.getElementById('room-display-code').textContent = `Code: ${this.roomCode}`;
+
+            // Copy Code functionality (One-time use - completely removed after)
+            const copyBtn = document.getElementById('copy-code-btn');
+            if (copyBtn) {
+                copyBtn.onclick = async () => {
+                    try {
+                        await navigator.clipboard.writeText(this.roomCode);
+                        copyBtn.classList.add('copied');
+                        copyBtn.innerHTML = '<span>✓ Copied</span>'; // Change text to show success
+                        this.showPopup('Office code copied to clipboard! 📋');
+                        
+                        // Completely remove from DOM after showing success
+                        setTimeout(() => {
+                            copyBtn.style.opacity = '0';
+                            setTimeout(() => {
+                                copyBtn.remove(); // Gone forever
+                            }, 300);
+                        }, 1000);
+                    } catch (err) {
+                        console.error('Failed to copy code:', err);
+                    }
+                };
+            }
         }
 
         /* ---------------- CHAT ---------------- */
@@ -159,6 +182,51 @@ export default class OfficeScene extends Phaser.Scene {
         this.bossPanelUI = new BossPanelUI(this);
         this.executiveUI = new ExecutiveUI(this);
         this.genAIUI = new GenAIUI(this);
+
+        /* ---------------- HELP & SHORTCUTS ---------------- */
+        this.initHelpUI();
+    }
+
+    initHelpUI() {
+        const overlay = document.getElementById('shortcuts-overlay');
+        const helpBtn = document.getElementById('help-button');
+        const closeBtn = document.getElementById('close-shortcuts-btn');
+
+        const toggleHelp = () => {
+            if (overlay) {
+                const isHidden = overlay.style.display === 'none';
+                overlay.style.display = isHidden ? 'flex' : 'none';
+            }
+        };
+
+        if (helpBtn) helpBtn.onclick = toggleHelp;
+        if (closeBtn) closeBtn.onclick = () => { if (overlay) overlay.style.display = 'none'; };
+
+        // Keyboard listener for '?' and ESC
+        this.input.keyboard.on('keydown-ESC', () => this.closeAllModals());
+        this.input.keyboard.on('keydown-SLASH', (event) => {
+            if (event.shiftKey) toggleHelp(); // '?' is Shift + '/'
+        });
+    }
+
+    closeAllModals() {
+        // Close Todo
+        if (this.todoUI) this.todoUI.closeTodo();
+        // Close Boss Panel
+        const bossOverlay = document.getElementById('boss-panel-overlay');
+        if (bossOverlay) bossOverlay.style.display = 'none';
+        // Close GenAI
+        const genAIOverlay = document.getElementById('genai-assistant-overlay');
+        if (genAIOverlay) genAIOverlay.style.display = 'none';
+        // Close Executive
+        const execOverlay = document.getElementById('executive-panel-overlay');
+        if (execOverlay) execOverlay.style.display = 'none';
+        // Close Shortcuts
+        const helpOverlay = document.getElementById('shortcuts-overlay');
+        if (helpOverlay) helpOverlay.style.display = 'none';
+        // Close Features
+        const featuresOverlay = document.getElementById('features-popup-overlay');
+        if (featuresOverlay) featuresOverlay.style.display = 'none';
     }
 
     createAnimations() {
