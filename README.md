@@ -142,9 +142,14 @@ Open `http://localhost:5173` and start your new work life! 🚀
 
 ---
 
-## Folder Structure & Customization
+## 📚 Documentation
 
-See our [detailed architecture guide](officeVerse_client/README.md) to learn how to add your own zones, characters, or AI behaviors.
+For detailed information, please refer to our manuals:
+
+- 📖 [User Manual](./UserManual.md) — How to play, key controls, and features.
+- 🎨 [Frontend Manual](./FrontEndManual.md) — Client setup, architecture, and development.
+- ⚙️ [Backend Manual](./BackendManual.md) — Server setup, technology stack, and API.
+- 🤝 [Contribution Manual](./ContributionManual.md) — Guidelines for contributing to OfficeVerse.
 
 ---
 
