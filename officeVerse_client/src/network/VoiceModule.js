@@ -21,6 +21,9 @@ export class VoiceManager {
                 { urls: 'stun:stun1.l.google.com:19302' }
             ]
         };
+
+        // Queue for ICE candidates that arrive before RemoteDescription is set
+        this.pendingCandidates = {}; // <PlayerId, [candidates]>
     }
 
     // --- Meeting Logic ---
@@ -123,18 +126,33 @@ export class VoiceManager {
             if (call && call.peerConnection) {
                 try {
                     await call.peerConnection.setRemoteDescription(new RTCSessionDescription(data.sdp));
+                    console.log("Remote description set (answer) for", senderId);
+
+                    // Update caller status to Connected
+                    if (!this.isInMeeting) {
+                        this.onStatusChange("Connected.", true);
+                    }
+
+                    // Process any queued candidates
+                    await this.processQueuedCandidates(senderId);
                 } catch (e) { console.error("Error setting remote desc (answer)", e); }
             }
 
         } else if (data.type === 'candidate') {
             const call = this.activeCalls[senderId];
-            if (call && call.peerConnection && data.candidate) {
+            const pc = call ? call.peerConnection : null;
+
+            if (pc && pc.remoteDescription && pc.remoteDescription.type) {
+                // Remote description is set, add candidate directly
                 try {
-                    await call.peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+                    await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
                     console.log("Added ICE candidate from", senderId);
                 } catch (e) { console.error("Error adding ICE", e); }
             } else {
-                console.warn("Received candidate for unknown/inactive call:", senderId);
+                // Queue candidate until remote description is set
+                console.log("Queuing ICE candidate from", senderId);
+                if (!this.pendingCandidates[senderId]) this.pendingCandidates[senderId] = [];
+                this.pendingCandidates[senderId].push(data.candidate);
             }
 
         } else if (data.type === 'bye') {
@@ -181,6 +199,8 @@ export class VoiceManager {
 
         try {
             await pc.setRemoteDescription(new RTCSessionDescription(remoteSdp));
+            console.log("Remote description set (offer) from", targetId);
+
             const answer = await pc.createAnswer();
             await pc.setLocalDescription(answer);
             this.sendSignal(targetId, { type: 'answer', sdp: answer });
@@ -188,6 +208,9 @@ export class VoiceManager {
             if (!this.isInMeeting) {
                 this.onStatusChange("Connected.", true);
             }
+
+            // Process any queued candidates
+            await this.processQueuedCandidates(targetId);
         } catch (err) {
             console.error("Error accepting call:", err);
             this.endCall(targetId);
@@ -272,6 +295,24 @@ export class VoiceManager {
         }
     }
 
+    async processQueuedCandidates(targetId) {
+        const candidates = this.pendingCandidates[targetId];
+        const call = this.activeCalls[targetId];
+        if (!candidates || !call || !call.peerConnection) return;
+
+        console.log(`Processing ${candidates.length} queued candidates for ${targetId}`);
+        while (candidates.length > 0) {
+            const candidate = candidates.shift();
+            try {
+                await call.peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+                console.log("Added queued ICE candidate for", targetId);
+            } catch (e) {
+                console.error("Error adding queued ICE:", e);
+            }
+        }
+        delete this.pendingCandidates[targetId];
+    }
+
     sendSignal(targetId, data) {
         if (this.socket.readyState === WebSocket.OPEN) {
             const json = JSON.stringify(data);
@@ -296,6 +337,7 @@ export class VoiceManager {
                     call.remoteAudio.remove();
                 }
                 delete this.activeCalls[targetId];
+                delete this.pendingCandidates[targetId];
             }
         } else {
             // Triggered by UI "End Call" -> End Everything
